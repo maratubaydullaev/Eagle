@@ -70,7 +70,9 @@ export const learning = {
       stars: rewardAlreadyGranted ? Math.max(old!.stars, stars) : stars
     }
     const next = storage.progress(progress)
-    next.activityMastery = { ...next.activityMastery }
+    if (state.profile) next.profile = state.profile
+    next.activityMastery = { ...state.activityMastery, ...next.activityMastery }
+    storage.save(next)
     return next
   }
 }
