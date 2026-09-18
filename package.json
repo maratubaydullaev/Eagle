@@ -1,0 +1,11 @@
+{
+  "name": "pochemuchka",
+  "version": "0.1.0",
+  "private": true,
+  "description": "POCHEMUCHKA educational game MVP",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}
