@@ -1,13 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import { lessons, worlds } from '../content/content'
-import { learning, repetition, storage } from '../services/core'
+import { learning, repetition, storage, ageAdaptation } from '../services/core'
 
 describe('POCHEMUЧКА MVP content', () => {
   it('has exactly 10 MVP lessons', () => expect(lessons).toHaveLength(10))
+  it('has the MVP world lesson distribution', () => expect(Object.fromEntries(['world','math','animals'].map(id => [id, lessons.filter(l => l.worldId === id).length]))).toEqual({ world: 3, math: 4, animals: 3 }))
   it('has three active MVP worlds', () => expect(worlds.filter(w => w.isActive).map(w => w.id)).toEqual(['world', 'math', 'animals']))
   it('lesson ids are unique', () => expect(new Set(lessons.map(l => l.id)).size).toBe(10))
   it('content activities use supported MVP types', () => expect(lessons.flatMap(l => l.steps).every(a => ['quiz', 'drag_drop', 'matching'].includes(a.type))).toBe(true))
   it('every lesson has at least two activities', () => expect(lessons.every(l => l.steps.length >= 2)).toBe(true))
+  it('age adaptation uses the agreed quiz timers', () => { expect(ageAdaptation.timerSeconds(6)).toBe(20); expect(ageAdaptation.timerSeconds(8)).toBe(17); expect(ageAdaptation.timerSeconds(10)).toBe(15) })
   it('completed lessons cannot farm XP on replay', () => {
     const state: any = { profile: { id: 'p', age: 7 }, progress: {}, activityMastery: {}, xp: 0, stars: 0 }
     const lesson = lessons[0]
