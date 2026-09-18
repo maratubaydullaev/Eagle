@@ -4,4 +4,6 @@ create table if not exists worlds(id text primary key,title text not null,descri
 alter table telegram_users enable row level security;alter table profiles enable row level security;alter table lesson_progress enable row level security;alter table activity_attempts enable row level security;alter table reward_transactions enable row level security;alter table analytics_events enable row level security;
 create index if not exists idx_topics_world on topics(world_id,order_index);create index if not exists idx_lessons_topic on lessons(topic_id,order_index);create index if not exists idx_activities_lesson on activities(lesson_id,order_index);create index if not exists idx_progress_profile on lesson_progress(profile_id,lesson_id);create index if not exists idx_attempts_profile on activity_attempts(profile_id,created_at desc);create index if not exists idx_events_profile on analytics_events(profile_id,created_at desc);
 
-alter table lesson_progress add column if not exists next_review_at timestamptz;\ncreate index if not exists idx_progress_review on lesson_progress(profile_id,next_review_at) where next_review_at is not null;\n
+alter table lesson_progress add column if not exists next_review_at timestamptz;
+create index if not exists idx_progress_review on lesson_progress(profile_id,next_review_at) where next_review_at is not null;
+
