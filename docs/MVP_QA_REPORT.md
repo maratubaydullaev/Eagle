@@ -1,6 +1,6 @@
 # ПОЧЕМУЧКА — MVP QA Report
 Date: 2026-09-18
-Baseline: main after PR #6 and PR #7
+Baseline: main after PR #6, #7 and #8
 
 ## Implemented and checked by code review
 - React + TypeScript + Vite foundation
