@@ -34,7 +34,7 @@ export const backend = {
   async saveProfile(profile: ChildProfile) { await call('save_profile', { name: profile.name, age: profile.age, avatar: profile.avatar }) },
   async getDueReviews(): Promise<LessonProgress[]> { const body = await call('due_reviews'); return body ? (body.progress || []).map(fromRow) : [] },
   async saveProgress(progress: LessonProgress) {
-    await call('save_progress', { lessonId: progress.lessonId, status: progress.status, score: progress.score, attempts: progress.attempts, startedAt: progress.startedAt, completedAt: progress.completedAt })
+    await call('save_progress', { lessonId: progress.lessonId, status: progress.status, score: progress.score, attempts: progress.attempts, startedAt: progress.startedAt, completedAt: progress.completedAt, mastery: progress.mastery, xp: progress.xp, stars: progress.stars, nextReviewAt: progress.nextReviewAt })
   },
   async saveActivityAttempt(attempt: Omit<ActivityAttempt, 'id'|'createdAt'>) {
     await call('activity_attempt', { activityId: attempt.activityId, isCorrect: attempt.isCorrect, answer: attempt.answer, timeSpent: attempt.timeSpent })
