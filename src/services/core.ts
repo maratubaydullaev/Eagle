@@ -1,1 +1,122 @@
-import type{AppState,ChildProfile,Lesson,LessonProgress}from'../app/types';import{lessons}from'../content/content';const KEY='pochemuchka_state_v1';const empty:AppState={profile:null,progress:{},xp:0,stars:0};export const storage={load():AppState{try{return JSON.parse(localStorage.getItem(KEY)||'null')||empty}catch{return empty}},save(s:AppState){localStorage.setItem(KEY,JSON.stringify(s))},profile(p:ChildProfile){const s=this.load();s.profile=p;this.save(s);return s},progress(p:LessonProgress){const s=this.load();s.progress[p.lessonId]=p;s.lastLessonId=p.lessonId;this.save(s);return s}};export const learning={status(s:AppState,l:Lesson){const p=s.progress[l.id];if(p)return p.status;const ls=lessons.filter(x=>x.worldId===l.worldId&&x.ageMin<=(s.profile?.age||7)&&x.ageMax>=(s.profile?.age||7)).sort((a,b)=>a.orderIndex-b.orderIndex);const i=ls.findIndex(x=>x.id===l.id);return i===0||s.progress[ls[i-1]?.id]?.status==='completed'?'available':'locked'},start(s:AppState,id:string){const old=s.progress[id];return storage.progress(old?{...old,status:'in_progress'}:{id:crypto.randomUUID(),profileId:s.profile!.id,lessonId:id,status:'in_progress',score:0,mastery:0,attempts:0,startedAt:new Date().toISOString(),xp:0,stars:0})},complete(s:AppState,l:Lesson,score:number){const total=l.steps.length,accuracy=score/total,stars=accuracy>=.9?3:accuracy>=.6?2:accuracy>=.3?1:0;const old=s.progress[l.id];if(old?.status==='completed'&&old.xp>0)return s;const p:LessonProgress={id:old?.id||crypto.randomUUID(),profileId:s.profile!.id,lessonId:l.id,status:'completed',score,mastery:accuracy,attempts:(old?.attempts||0)+1,startedAt:old?.startedAt,completedAt:new Date().toISOString(),xp:old?.xp||20+score*10,stars:old?.stars||stars};const n=storage.progress(p);n.xp=Object.values(n.progress).reduce((a,x)=>a+x.xp,0);n.stars=Object.values(n.progress).reduce((a,x)=>a+x.stars,0);storage.save(n);return n}};declare global{interface Window{Telegram?:{WebApp?:any}}}const tg=window.Telegram?.WebApp;export const telegram={available:!!tg,initData:tg?.initData||'',firstName:()=>tg?.initDataUnsafe?.user?.first_name||'',ready:()=>{try{tg?.ready();tg?.expand()}catch{}},haptic:(x:'success'|'error'|'warning')=>{try{tg?.HapticFeedback?.notificationOccurred(x)}catch{}}};telegram.ready();let sound=localStorage.getItem('pochemuchka_sound')!=='off';let ac:AudioContext|null=null;function tone(f:number,d=.1){if(!sound)return;ac??=new AudioContext();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;o.connect(g);g.connect(ac.destination);g.gain.setValueAtTime(.001,ac.currentTime);g.gain.exponentialRampToValueAtTime(.08,ac.currentTime+.02);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.start();o.stop(ac.currentTime+d+.02)}export const audio={correct(){tone(660);setTimeout(()=>tone(880),70)},wrong(){tone(220,.18)},win(){tone(523);setTimeout(()=>tone(659),100);setTimeout(()=>tone(784,.2),200)},toggle(){sound=!sound;localStorage.setItem('pochemuchka_sound',sound?'on':'off')},get enabled(){return sound}};export const repetition={intervals:[1,3,7],needsPractice:(p:LessonProgress)=>p.mastery<.7&&p.attempts>0,nextDate:(p:LessonProgress)=>{const i=p.mastery<.4?0:p.mastery<.7?1:2;const d=new Date(p.completedAt||Date.now());d.setDate(d.getDate()+repetition.intervals[i]);return d}};export const ageAdaptation={group:(age:number)=>age<=7?'6-7':age<=9?'8-9':'10',timerSeconds:(age:number)=>age<=7?20:age===8||age===9?17:15};
+import type { AppState, ChildProfile, Lesson, LessonProgress } from '../app/types'
+import { lessons } from '../content/content'
+
+const KEY = 'pochemuchka_state_v1'
+const emptyState = (): AppState => ({ profile: null, progress: {}, activityMastery: {}, xp: 0, stars: 0 })
+
+function getStore(): Storage | null {
+  try { return typeof localStorage !== 'undefined' ? localStorage : null } catch { return null }
+}
+function recalc(state: AppState): AppState {
+  state.xp = Object.values(state.progress).reduce((n, p) => n + p.xp, 0)
+  state.stars = Object.values(state.progress).reduce((n, p) => n + p.stars, 0)
+  return state
+}
+export const storage = {
+  load(): AppState {
+    try {
+      const raw = getStore()?.getItem(KEY)
+      if (!raw) return emptyState()
+      const parsed = JSON.parse(raw)
+      return { ...emptyState(), ...parsed, activityMastery: parsed.activityMastery || {} }
+    } catch { return emptyState() }
+  },
+  save(state: AppState) { getStore()?.setItem(KEY, JSON.stringify(recalc(state))) },
+  profile(profile: ChildProfile) { const state = this.load(); state.profile = profile; this.save(state); return state },
+  progress(progress: LessonProgress) { const state = this.load(); state.progress[progress.lessonId] = progress; state.lastLessonId = progress.lessonId; this.save(state); return state },
+  activityMastery(activityId: string, correct: boolean) {
+    const state = this.load()
+    const previous = state.activityMastery[activityId] ?? 0
+    state.activityMastery[activityId] = Math.max(0, Math.min(1, previous * 0.7 + (correct ? 0.3 : 0)))
+    this.save(state)
+    return state
+  }
+}
+
+export const learning = {
+  status(state: AppState, lesson: Lesson) {
+    const progress = state.progress[lesson.id]
+    if (progress) return progress.status
+    const age = state.profile?.age || 7
+    const available = lessons.filter(x => x.worldId === lesson.worldId && x.ageMin <= age && x.ageMax >= age).sort((a,b) => a.orderIndex - b.orderIndex)
+    const index = available.findIndex(x => x.id === lesson.id)
+    return index === 0 || state.progress[available[index - 1]?.id]?.status === 'completed' ? 'available' : 'locked'
+  },
+  start(state: AppState, lessonId: string) {
+    const old = state.progress[lessonId]
+    const progress: LessonProgress = old
+      ? { ...old, status: 'in_progress', startedAt: old.startedAt || new Date().toISOString() }
+      : { id: crypto.randomUUID(), profileId: state.profile!.id, lessonId, status: 'in_progress', score: 0, mastery: 0, attempts: 0, startedAt: new Date().toISOString(), xp: 0, stars: 0 }
+    return storage.progress(progress)
+  },
+  complete(state: AppState, lesson: Lesson, score: number) {
+    const total = Math.max(1, lesson.steps.length)
+    const accuracy = Math.max(0, Math.min(1, score / total))
+    const stars = accuracy >= .9 ? 3 : accuracy >= .6 ? 2 : accuracy >= .3 ? 1 : 0
+    const old = state.progress[lesson.id]
+    const rewardAlreadyGranted = (old?.xp || 0) > 0
+    const progress: LessonProgress = {
+      id: old?.id || crypto.randomUUID(),
+      profileId: state.profile!.id,
+      lessonId: lesson.id,
+      status: 'completed',
+      score,
+      mastery: accuracy,
+      attempts: (old?.attempts || 0) + 1,
+      startedAt: old?.startedAt,
+      completedAt: new Date().toISOString(),
+      nextReviewAt: repetition.nextDate({ mastery: accuracy, completedAt: new Date().toISOString() } as LessonProgress).toISOString(),
+      xp: rewardAlreadyGranted ? old!.xp : 20 + score * 10,
+      stars: rewardAlreadyGranted ? Math.max(old!.stars, stars) : stars
+    }
+    const next = storage.progress(progress)
+    next.activityMastery = { ...next.activityMastery }
+    return next
+  }
+}
+
+declare global { interface Window { Telegram?: { WebApp?: any } } }
+const tg = typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined
+export const telegram = {
+  available: !!tg,
+  initData: tg?.initData || '',
+  firstName: () => tg?.initDataUnsafe?.user?.first_name || '',
+  ready: () => { try { tg?.ready(); tg?.expand() } catch {} },
+  haptic: (kind: 'success'|'error'|'warning') => { try { tg?.HapticFeedback?.notificationOccurred(kind) } catch {} }
+}
+telegram.ready()
+
+let sound = getStore()?.getItem('pochemuchka_sound') !== 'off'
+let audioContext: AudioContext | null = null
+function tone(frequency: number, duration = .1) {
+  if (!sound || typeof AudioContext === 'undefined') return
+  audioContext ??= new AudioContext()
+  const oscillator = audioContext.createOscillator(), gain = audioContext.createGain()
+  oscillator.frequency.value = frequency; oscillator.connect(gain); gain.connect(audioContext.destination)
+  gain.gain.setValueAtTime(.001, audioContext.currentTime)
+  gain.gain.exponentialRampToValueAtTime(.08, audioContext.currentTime + .02)
+  gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + duration)
+  oscillator.start(); oscillator.stop(audioContext.currentTime + duration + .02)
+}
+export const audio = {
+  correct() { tone(660); setTimeout(() => tone(880), 70) },
+  wrong() { tone(220, .18) },
+  win() { tone(523); setTimeout(() => tone(659), 100); setTimeout(() => tone(784, .2), 200) },
+  toggle() { sound = !sound; getStore()?.setItem('pochemuchka_sound', sound ? 'on' : 'off') },
+  get enabled() { return sound }
+}
+
+export const repetition = {
+  intervals: [1, 3, 7],
+  needsPractice: (progress: LessonProgress) => progress.attempts > 0 && progress.mastery < .7,
+  nextDate: (progress: LessonProgress) => {
+    const interval = progress.mastery < .4 ? 1 : progress.mastery < .7 ? 3 : 7
+    const date = new Date(progress.completedAt || Date.now())
+    date.setDate(date.getDate() + interval)
+    return date
+  }
+}
+export const ageAdaptation = {
+  group: (age: number) => age <= 7 ? '6-7' : age <= 9 ? '8-9' : '10',
+  timerSeconds: (age: number) => age <= 7 ? 20 : age <= 9 ? 17 : 15
+}
