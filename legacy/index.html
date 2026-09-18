@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Клиника Кота-Доктора</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EAF7F3; --bg-2:#DCF1EA; --card:#FFFFFF;
+    --ink:#1B4444; --ink-soft:#4C6E68;
+    --coral:#FF7A59; --coral-dark:#E4633F;
+    --gold:#FFC857; --wrong:#FF5C7A; --good:#3FBF8F;
+    --border:#D8EEE6;
+    --shadow: 0 14px 30px -14px rgba(27,68,68,0.28);
+    --radius-card: 26px; --radius-pill: 999px;
+  }
+  :root:not([data-theme="light"]){
+    @media (prefers-color-scheme: dark){
+      --bg:#0F2222; --bg-2:#123030; --card:#173838;
+      --ink:#EAF7F3; --ink-soft:#A9C9C2; --border:#215048;
+      --shadow: 0 14px 30px -14px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0F2222; --bg-2:#123030; --card:#173838;
+    --ink:#EAF7F3; --ink-soft:#A9C9C2; --border:#215048;
+    --shadow: 0 14px 30px -14px rgba(0,0,0,0.6);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    min-height:100vh;
+    background: radial-gradient(circle at 15% -5%, var(--bg-2) 0%, transparent 45%),
+                radial-gradient(circle at 100% 10%, var(--bg-2) 0%, transparent 40%), var(--bg);
+    font-family:"Nunito", system-ui, sans-serif; color:var(--ink);
+    display:flex; justify-content:center; -webkit-tap-highlight-color: transparent;
+    overflow-x:hidden;
+  }
+  .app{ width:100%; max-width:460px; min-height:100vh; padding:18px 16px 28px; display:flex; flex-direction:column; position:relative; }
+
+  .top{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+  .top-left{ display:flex; align-items:center; gap:12px; }
+  .mascot{ width:56px; height:56px; flex-shrink:0; }
+  .title{ font-family:"Baloo 2", sans-serif; font-weight:700; font-size:19px; line-height:1.15; }
+  .subtitle{ font-size:13px; color:var(--ink-soft); margin-top:2px; }
+  .sound-toggle{
+    width:38px; height:38px; border-radius:50%; border:1px solid var(--border);
+    background:var(--card); display:flex; align-items:center; justify-content:center;
+    cursor:pointer; flex-shrink:0; font-size:17px;
+  }
+
+  .stat-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:16px; }
+  .lives{ display:flex; gap:5px; }
+  .paw{ width:20px; height:20px; transition:opacity .25s, transform .25s; }
+  .paw.lost{ opacity:.18; transform:scale(.8); }
+  .score-pill{
+    font-family:"Baloo 2", sans-serif; font-weight:700; font-size:14px;
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius-pill);
+    padding:6px 14px; display:flex; align-items:center; gap:6px;
+  }
+  .progress-track{ height:8px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-pill); overflow:hidden; margin-bottom:20px; }
+  .progress-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--gold), var(--coral)); border-radius:var(--radius-pill); transition: width .4s cubic-bezier(.4,0,.2,1); }
+
+  .stage{ position:relative; flex:1; display:flex; align-items:flex-start; }
+  .card{ width:100%; background:var(--card); border-radius:var(--radius-card); box-shadow:var(--shadow); padding:26px 20px 22px; border:1px solid var(--border); animation: dropIn .35s cubic-bezier(.2,.8,.2,1); }
+  @keyframes dropIn{ from{ opacity:0; transform:translateY(10px) scale(.98);} to{ opacity:1; transform:translateY(0) scale(1);} }
+  .card.shake{ animation: shake .4s; }
+  @keyframes shake{ 10%,90%{transform:translateX(-3px);} 20%,80%{transform:translateX(5px);} 30%,50%,70%{transform:translateX(-8px);} 40%,60%{transform:translateX(8px);} }
+
+  .patient-tag{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:800; color:var(--coral-dark); background:#FFF0EA; border-radius:var(--radius-pill); padding:5px 12px; margin-bottom:14px; }
+  :root[data-theme="dark"] .patient-tag, :root:not([data-theme="light"]) .patient-tag{ @media (prefers-color-scheme: dark){ background:#3A2A24; color:#FFB199; } }
+
+  .timer-row{ display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+  .timer-track{ flex:1; height:7px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-pill); overflow:hidden; }
+  .timer-fill{ height:100%; width:100%; background:linear-gradient(90deg,var(--good),var(--gold)); border-radius:var(--radius-pill); }
+  .timer-fill.urgent{ background:linear-gradient(90deg,var(--wrong),#ffb199); animation:timerPulse .5s infinite alternate; }
+  @keyframes timerPulse{ from{opacity:1;} to{opacity:.55;} }
+  .timer-icon{ font-size:13px; flex-shrink:0; }
+
+  .question{ font-family:"Baloo 2", sans-serif; font-weight:700; font-size:21px; line-height:1.32; margin-bottom:20px; }
+  .answers{ display:flex; flex-direction:column; gap:10px; }
+  .answer{ text-align:left; font-family:"Nunito", sans-serif; font-weight:800; font-size:16px; color:var(--ink); background:var(--bg); border:2px solid var(--border); border-radius:16px; padding:14px 16px; cursor:pointer; transition: transform .12s, border-color .15s, background .15s; }
+  .answer:active{ transform:scale(.98); }
+  .answer:disabled{ cursor:default; }
+  .answer.correct{ background:#E7F9F1; border-color:var(--good); color:#1D6B4E; }
+  .answer.wrong{ background:#FFEDF0; border-color:var(--wrong); color:#A32A44; }
+  :root[data-theme="dark"] .answer.correct, :root:not([data-theme="light"]) .answer.correct{ @media (prefers-color-scheme: dark){ background:#123B2C; color:#8CE6C0; } }
+  :root[data-theme="dark"] .answer.wrong, :root:not([data-theme="light"]) .answer.wrong{ @media (prefers-color-scheme: dark){ background:#3B1622; color:#FF9FB2; } }
+
+  .feedback{ margin-top:16px; font-size:14px; font-weight:800; min-height:20px; color:var(--ink-soft); }
+
+  .cta, .primary-btn{
+    margin-top:16px; width:100%; font-family:"Baloo 2", sans-serif; font-weight:700; font-size:16px;
+    color:#fff; background:linear-gradient(135deg, var(--coral), var(--coral-dark)); border:none;
+    border-radius:16px; padding:14px; cursor:pointer; box-shadow:0 10px 20px -10px rgba(228,99,63,.6);
+  }
+  .cta{ opacity:0; pointer-events:none; transition:opacity .2s; }
+  .cta.show{ opacity:1; pointer-events:auto; }
+
+  .screen{ background:var(--card); border-radius:var(--radius-card); box-shadow:var(--shadow); border:1px solid var(--border); padding:28px 22px; }
+  .screen h1{ font-family:"Baloo 2", sans-serif; font-size:22px; margin:14px 0 8px; text-align:center; }
+  .screen p.lead{ font-size:14.5px; color:var(--ink-soft); line-height:1.5; margin:0 0 20px; text-align:center; }
+  .big-mascot{ width:88px; height:88px; margin:0 auto; display:block; }
+
+  /* Name screen */
+  .field-label{ font-weight:800; font-size:13.5px; color:var(--ink-soft); margin:16px 0 6px; }
+  .field-label:first-of-type{ margin-top:6px; }
+  .text-input{
+    width:100%; font-family:"Nunito", sans-serif; font-weight:800; font-size:16px; color:var(--ink);
+    background:var(--bg); border:2px solid var(--border); border-radius:14px; padding:13px 14px; outline:none;
+  }
+  .text-input:focus{ border-color:var(--coral); }
+  .age-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:2px; }
+  .age-chip{
+    font-family:"Baloo 2", sans-serif; font-weight:700; font-size:15px; color:var(--ink);
+    background:var(--bg); border:2px solid var(--border); border-radius:12px; width:46px; height:46px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .age-chip.active{ background:var(--coral); border-color:var(--coral-dark); color:#fff; }
+  .field-error{ color:var(--wrong); font-size:12.5px; font-weight:800; min-height:16px; margin-top:6px; }
+
+  /* Subject screen */
+  .subject-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:6px; }
+  .subject-card{
+    background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:16px 10px;
+    text-align:center; cursor:pointer; transition:transform .12s, border-color .15s;
+  }
+  .subject-card:active{ transform:scale(.97); }
+  .subject-card .emoji{ font-size:30px; display:block; margin-bottom:6px; }
+  .subject-card .name{ font-family:"Baloo 2", sans-serif; font-weight:700; font-size:14px; }
+  .subject-card.mixed{ grid-column:1 / -1; background:linear-gradient(135deg, #FFF3EA, #FFE7DC); border-color:var(--coral); }
+  :root[data-theme="dark"] .subject-card.mixed, :root:not([data-theme="light"]) .subject-card.mixed{ @media (prefers-color-scheme: dark){ background:linear-gradient(135deg, #33231d, #3a281f); } }
+
+  /* End screen */
+  .stars{ display:flex; justify-content:center; gap:6px; margin:14px 0 4px; }
+  .stars svg{ width:34px; height:34px; }
+  .result-number{ font-family:"Baloo 2", sans-serif; font-size:42px; font-weight:800; color:var(--coral-dark); line-height:1; text-align:center; margin:4px 0 2px; }
+  .result-sub{ text-align:center; font-size:13.5px; color:var(--ink-soft); margin-bottom:18px; }
+  .leaderboard{ margin-top:22px; border-top:1px dashed var(--border); padding-top:16px; }
+  .leaderboard-title{ font-family:"Baloo 2", sans-serif; font-weight:700; font-size:15px; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+  .lb-row{ display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:12px; font-size:13.5px; }
+  .lb-row.me{ background:#FFF3EA; }
+  :root[data-theme="dark"] .lb-row.me, :root:not([data-theme="light"]) .lb-row.me{ @media (prefers-color-scheme: dark){ background:#33231d; } }
+  .lb-rank{ font-family:"Baloo 2", sans-serif; font-weight:800; width:20px; text-align:center; color:var(--ink-soft); }
+  .lb-name{ flex:1; font-weight:800; }
+  .lb-sub{ font-size:16px; }
+  .lb-score{ font-family:"Baloo 2", sans-serif; font-weight:800; color:var(--coral-dark); }
+
+  .hidden{ display:none; }
+  body.tg-mode .cta, body.tg-mode .primary-btn{ display:none; }
+
+  .confetti-piece{ position:fixed; top:-10px; width:9px; height:14px; border-radius:2px; pointer-events:none; z-index:50; animation:fall linear forwards; }
+  @keyframes fall{ to{ transform:translateY(110vh) rotate(400deg); opacity:.9; } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <div class="top-left">
+      <svg class="mascot" viewBox="0 0 100 100" aria-hidden="true" id="headerMascot"></svg>
+      <div>
+        <div class="title">Клиника Кота-Доктора</div>
+        <div class="subtitle">Лечи пациентов знаниями!</div>
+      </div>
+    </div>
+    <button class="sound-toggle" id="soundToggle" type="button" aria-label="Звук">🔊</button>
+  </div>
+
+  <!-- 1. NAME + AGE -->
+  <div id="nameScreen" class="screen">
+    <svg class="big-mascot" viewBox="0 0 100 100" id="nameMascot"></svg>
+    <h1>Как тебя зовут?</h1>
+    <p class="lead">Доктор Кот должен знать, кто ему сегодня помогает.</p>
+    <div class="field-label">Имя</div>
+    <input class="text-input" id="nameInput" type="text" maxlength="20" placeholder="Например, Амина" autocomplete="off">
+    <div class="field-label">Сколько тебе лет?</div>
+    <div class="age-row" id="ageRow"></div>
+    <div class="field-error" id="nameError"></div>
+    <button class="primary-btn" id="nameNextBtn">Дальше →</button>
+  </div>
+
+  <!-- 2. SUBJECT -->
+  <div id="subjectScreen" class="screen hidden">
+    <h1 id="subjectGreeting">Выбери приём</h1>
+    <p class="lead">Каждый пациент — это вопрос. Выбери тему или смешай всё сразу.</p>
+    <div class="subject-grid" id="subjectGrid"></div>
+  </div>
+
+  <!-- 3. GAME -->
+  <div id="game" class="hidden">
+    <div class="stat-row">
+      <div class="lives" id="lives"></div>
+      <div class="score-pill">⭐ <span id="scoreVal">0</span></div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="stage">
+      <div class="card" id="card">
+        <div class="patient-tag" id="patientTag">Пациент 1 из 8</div>
+        <div class="timer-row"><span class="timer-icon">⏱</span><div class="timer-track"><div class="timer-fill" id="timerFill"></div></div></div>
+        <div class="question" id="questionText">—</div>
+        <div class="answers" id="answers"></div>
+        <div class="feedback" id="feedback"></div>
+        <button class="cta" id="nextBtn">Следующий пациент →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. END -->
+  <div id="end" class="hidden screen">
+    <svg class="big-mascot" id="endMascot" viewBox="0 0 100 100"></svg>
+    <div class="stars" id="starsRow"></div>
+    <h1 id="endTitle">Приём окончен!</h1>
+    <div class="result-number" id="endScore">0</div>
+    <div class="result-sub" id="endText">пациентов вылечено</div>
+    <button class="primary-btn" id="restartBtn">Начать новый приём</button>
+    <div class="leaderboard">
+      <div class="leaderboard-title">🏆 Лучшие приёмы на этом устройстве</div>
+      <div id="lbList"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Mascot SVG (swap innerHTML here with a base64 <image> to use an AI-generated cat) ----------
+  var MASCOT_SVG =
+    '<ellipse cx="50" cy="58" rx="34" ry="30" fill="#FFB199"/>' +
+    '<path d="M22 40 L30 14 L44 36 Z" fill="#FFB199"/>' +
+    '<path d="M78 40 L70 14 L56 36 Z" fill="#FFB199"/>' +
+    '<path d="M25 39 L31 21 L41 35 Z" fill="#FF7A59"/>' +
+    '<path d="M75 39 L69 21 L59 35 Z" fill="#FF7A59"/>' +
+    '<circle cx="50" cy="60" r="27" fill="#FFF3ED"/>' +
+    '<ellipse cx="38" cy="58" rx="4" ry="5.5" fill="#1B4444"/>' +
+    '<ellipse cx="62" cy="58" rx="4" ry="5.5" fill="#1B4444"/>' +
+    '<path d="M46 68 Q50 72 54 68" stroke="#1B4444" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
+    '<circle cx="50" cy="63" r="2.5" fill="#E4633F"/>' +
+    '<path d="M24 80 Q50 92 76 80 L76 88 Q50 98 24 88 Z" fill="#FFFFFF"/>' +
+    '<circle cx="50" cy="80" r="6" fill="#B9DDEF" stroke="#8FC3DE" stroke-width="2"/>';
+  var MASCOT_HAPPY = MASCOT_SVG.replace(
+    '<path d="M46 68 Q50 72 54 68" stroke="#1B4444" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    '<path d="M44 66 Q50 74 56 66" stroke="#1B4444" stroke-width="2.5" fill="none" stroke-linecap="round"/>'
+  );
+  var MASCOT_SAD = MASCOT_SVG.replace(
+    '<path d="M46 68 Q50 72 54 68" stroke="#1B4444" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    '<path d="M46 70 Q50 66 54 70" stroke="#1B4444" stroke-width="2.5" fill="none" stroke-linecap="round"/>'
+  );
+  ['headerMascot','nameMascot'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = MASCOT_SVG;
+  });
+
+  // ---------- Question bank, split by subject ----------
+  var BANK = {
+    math: [
+      { q:"Сколько будет 7 + 8?", a:["15","14","16","13"], c:0 },
+      { q:"9 × 3 = ?", a:["27","24","21","18"], c:0 },
+      { q:"Раздели 20 на 4", a:["5","4","6","8"], c:0 },
+      { q:"Какое число идёт сразу после 99?", a:["100","101","90","98"], c:0 },
+      { q:"Сколько будет 45 − 19?", a:["26","24","25","28"], c:0 },
+      { q:"Сколько будет 6 × 6?", a:["36","30","42","24"], c:0 },
+      { q:"Сколько будет 12 + 39?", a:["51","49","52","41"], c:0 },
+      { q:"Раздели 36 на 6", a:["6","5","7","9"], c:0 },
+      { q:"Сколько будет 100 − 45?", a:["55","65","45","50"], c:0 },
+      { q:"Какое число больше: 87 или 78?", a:["87","78","они равны","нельзя узнать"], c:0 },
+      { q:"Сколько минут в одном часе?", a:["60","100","50","30"], c:0 },
+      { q:"Сколько будет 8 × 4?", a:["32","28","36","24"], c:0 },
+      { q:"У Амины было 25 конфет, она съела 7. Сколько осталось?", a:["18","17","19","15"], c:0 },
+      { q:"Сколько будет 3 × 3 × 2?", a:["18","15","12","20"], c:0 },
+      { q:"Раздели 42 на 7", a:["6","7","5","8"], c:0 },
+      { q:"Сколько будет 15 + 15 + 15?", a:["45","40","50","35"], c:0 },
+      { q:"Какое число меньше: 54 или 45?", a:["45","54","они равны","нельзя узнать"], c:0 },
+      { q:"Сколько будет 90 : 9?", a:["10","9","11","8"], c:0 },
+      { q:"Сколько будет 24 : 3?", a:["8","6","9","7"], c:0 },
+      { q:"Сколько будет 17 + 26?", a:["43","42","44","41"], c:0 },
+      { q:"Сколько будет 13 × 2?", a:["26","24","28","22"], c:0 },
+      { q:"Сколько будет 50 − 27?", a:["23","22","24","21"], c:0 },
+      { q:"Раздели 48 на 8", a:["6","5","7","8"], c:0 },
+      { q:"Сколько будет 19 + 19?", a:["38","36","40","37"], c:0 },
+      { q:"Сколько будет 7 × 7?", a:["49","42","56","48"], c:0 },
+      { q:"Сколько будет 100 − 58?", a:["42","48","52","38"], c:0 },
+      { q:"Раздели 63 на 9", a:["7","6","8","9"], c:0 },
+      { q:"Сколько будет 34 + 28?", a:["62","61","63","60"], c:0 },
+      { q:"Сколько будет 5 × 9?", a:["45","40","50","35"], c:0 },
+      { q:"Сколько будет 81 : 9?", a:["9","8","7","10"], c:0 }
+    ],
+    reading: [
+      { q:"Сколько гласных букв в слове «кошка»?", a:["2","3","1","4"], c:0 },
+      { q:"Жи-ши пиши через букву…", a:["и","ы","е","я"], c:0 },
+      { q:"Подбери синоним к слову «грустный»", a:["печальный","весёлый","быстрый","громкий"], c:0 },
+      { q:"Подбери антоним к слову «большой»", a:["маленький","огромный","высокий","широкий"], c:0 },
+      { q:"Сколько слогов в слове «молоко»?", a:["3","2","4","1"], c:0 },
+      { q:"Какое слово написано с ошибкой?", a:["жывотное","машина","карандаш","дежурный"], c:0 },
+      { q:"Ча-ща пиши через букву…", a:["а","я","о","е"], c:0 },
+      { q:"Выбери слово, обозначающее действие (глагол)", a:["бежит","красный","стол","быстро"], c:0 },
+      { q:"Сколько букв в слове «здравствуйте»?", a:["13","12","14","11"], c:0 },
+      { q:"Найди слово, где все согласные звонкие", a:["дом","кот","пух","сок"], c:0 },
+      { q:"Какое слово стоит во множественном числе?", a:["книги","книга","книгу","книге"], c:0 },
+      { q:"Подбери синоним к слову «быстрый»", a:["скорый","медленный","тихий","новый"], c:0 },
+      { q:"В конце вопросительного предложения ставится…", a:["?","!",".",","], c:0 },
+      { q:"Какое слово — имя существительное?", a:["дерево","зелёный","растёт","высоко"], c:0 },
+      { q:"Найди слово с мягким знаком", a:["конь","стол","дом","мир"], c:0 },
+      { q:"Сколько слогов в слове «карандаш»?", a:["3","2","4","1"], c:0 },
+      { q:"Подбери антоним к слову «холодный»", a:["горячий","морозный","ледяной","прохладный"], c:0 },
+      { q:"Чу-щу пиши через букву…", a:["у","ю","о","а"], c:0 },
+      { q:"Сколько слогов в слове «зима»?", a:["2","1","3","4"], c:0 },
+      { q:"Подбери синоним к слову «весёлый»", a:["радостный","грустный","злой","спокойный"], c:0 },
+      { q:"Сколько букв в слове «мама»?", a:["4","3","5","2"], c:0 },
+      { q:"Найди слово во множественном числе", a:["столы","стол","стола","столе"], c:0 },
+      { q:"Подбери антоним к слову «лёгкий»", a:["тяжёлый","мягкий","светлый","быстрый"], c:0 },
+      { q:"Сколько слогов в слове «самолёт»?", a:["3","2","4","1"], c:0 },
+      { q:"Какое слово — имя прилагательное?", a:["красивый","бежать","стол","быстро"], c:0 },
+      { q:"В начале предложения пишется…", a:["заглавная буква","строчная буква","цифра","знак"], c:0 },
+      { q:"Подбери синоним к слову «умный»", a:["смышлёный","глупый","слабый","злой"], c:0 },
+      { q:"Сколько гласных букв в русском алфавите?", a:["10","8","12","6"], c:0 },
+      { q:"Найди слово, отвечающее на вопрос «что делает?»", a:["читает","книга","умный","быстро"], c:0 },
+      { q:"В конце восклицательного предложения ставится…", a:["!","?",".",","], c:0 }
+    ],
+    world: [
+      { q:"Сколько ног у кошки?", a:["4","2","6","8"], c:0 },
+      { q:"Какое животное здесь дикое?", a:["волк","корова","собака","кошка"], c:0 },
+      { q:"Столица Узбекистана?", a:["Ташкент","Самарканд","Бухара","Хива"], c:0 },
+      { q:"Сколько дней в неделе?", a:["7","6","5","8"], c:0 },
+      { q:"Какое время года идёт сразу после зимы?", a:["весна","лето","осень","зима"], c:0 },
+      { q:"Сколько месяцев в году?", a:["12","10","11","13"], c:0 },
+      { q:"Что нужно растению для роста?", a:["вода и свет","только темнота","только холод","ничего не нужно"], c:0 },
+      { q:"Какое животное даёт молоко?", a:["корова","волк","орёл","змея"], c:0 },
+      { q:"Сколько частей света на Земле?", a:["6","4","5","8"], c:0 },
+      { q:"Какая река протекает в Узбекистане?", a:["Амударья","Волга","Нил","Амазонка"], c:0 },
+      { q:"Что случится со льдом, если его нагреть?", a:["растает","станет твёрже","исчезнет навсегда","станет холоднее"], c:0 },
+      { q:"Сколько времён года в Узбекистане?", a:["4","2","3","5"], c:0 },
+      { q:"Какая птица не умеет летать?", a:["страус","воробей","орёл","ласточка"], c:0 },
+      { q:"Что нужно делать перед едой?", a:["мыть руки","закрывать глаза","прыгать","молчать"], c:0 },
+      { q:"Сколько планет в Солнечной системе?", a:["8","7","9","6"], c:0 },
+      { q:"Какое из этих блюд узбекское?", a:["плов","паста","суши","тако"], c:0 },
+      { q:"Сколько сторон света существует?", a:["4","2","3","6"], c:0 },
+      { q:"Где живут рыбы?", a:["в воде","на дереве","в норе","в небе"], c:0 },
+      { q:"Сколько ушей у зайца?", a:["2","4","1","3"], c:0 },
+      { q:"Какая наша ближайшая звезда?", a:["Солнце","Луна","Марс","Венера"], c:0 },
+      { q:"Сколько материков на Земле?", a:["6","7","5","4"], c:0 },
+      { q:"Сколько цветов у радуги?", a:["7","6","5","8"], c:0 },
+      { q:"Какая самая большая планета Солнечной системы?", a:["Юпитер","Марс","Земля","Венера"], c:0 },
+      { q:"Что дают пчёлы?", a:["мёд","молоко","шерсть","яйца"], c:0 },
+      { q:"Сколько дней в феврале в обычный год?", a:["28","29","30","31"], c:0 },
+      { q:"Какое дерево даёт жёлуди?", a:["дуб","берёза","сосна","клён"], c:0 },
+      { q:"Что нужно делать при переходе дороги?", a:["смотреть по сторонам","бежать","закрыть глаза","прыгать"], c:0 },
+      { q:"Какое животное самое высокое на суше?", a:["жираф","слон","лошадь","верблюд"], c:0 },
+      { q:"Сколько сторон у квадрата?", a:["4","3","5","6"], c:0 },
+      { q:"Какой газ нужен человеку для дыхания?", a:["кислород","углекислый газ","азот","водород"], c:0 },
+      { q:"Что показывает компас?", a:["стороны света","время","температуру","вес"], c:0 }
+    ]
+  };
+  Object.keys(BANK).forEach(function(subjectKey){
+    BANK[subjectKey].forEach(function(item, index){ item.id = subjectKey + '_' + index; });
+  });
+  var SUBJECT_META = {
+    math:    { title:"Математика", emoji:"➗" },
+    reading: { title:"Чтение и язык", emoji:"📖" },
+    world:   { title:"Мир вокруг", emoji:"🌍" },
+    mixed:   { title:"Все вперемешку", emoji:"🎲" }
+  };
+
+  var ROUND_SIZE = 8;
+  var MAX_LIVES = 3;
+  var TIME_PER_Q = 15; // seconds allowed per question
+  var LB_KEY = 'catDoctorLeaderboard_v2';
+
+  var state = { order:[], idx:0, score:0, lives:MAX_LIVES, answered:false, subject:'mixed', player:{name:'',age:7} };
+
+  // ---------- Elements ----------
+  var nameScreen = document.getElementById('nameScreen');
+  var subjectScreen = document.getElementById('subjectScreen');
+  var gameEl = document.getElementById('game');
+  var endEl = document.getElementById('end');
+
+  var nameInput = document.getElementById('nameInput');
+  var ageRow = document.getElementById('ageRow');
+  var nameNextBtn = document.getElementById('nameNextBtn');
+  var nameError = document.getElementById('nameError');
+
+  var subjectGrid = document.getElementById('subjectGrid');
+  var subjectGreeting = document.getElementById('subjectGreeting');
+
+  var restartBtn = document.getElementById('restartBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var card = document.getElementById('card');
+  var livesEl = document.getElementById('lives');
+  var scoreVal = document.getElementById('scoreVal');
+  var progressFill = document.getElementById('progressFill');
+  var patientTag = document.getElementById('patientTag');
+  var questionText = document.getElementById('questionText');
+  var answersEl = document.getElementById('answers');
+  var feedbackEl = document.getElementById('feedback');
+  var soundToggle = document.getElementById('soundToggle');
+
+  var PAW = '<svg class="paw" viewBox="0 0 24 24"><path fill="#FF7A59" d="M12 14c-3.3 0-6 2.3-6 5.2 0 1.5 1.2 2.8 2.8 2.8.9 0 1.7-.4 2.3-1 .3-.3.7-.5 1-.5s.7.2 1 .5c.6.6 1.4 1 2.3 1 1.6 0 2.8-1.3 2.8-2.8C18 16.3 15.3 14 12 14zM6.5 9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm11 0a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM9.2 8.3a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8zm5.6 0a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8z"/></svg>';
+  var STAR_ON = '<svg viewBox="0 0 24 24"><path fill="#FFC857" d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01z"/></svg>';
+  var STAR_OFF = '<svg viewBox="0 0 24 24"><path fill="none" stroke="#D8EEE6" stroke-width="1.5" d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01z"/></svg>';
+
+  // ---------- Sound (synthesized, no external files) ----------
+  var soundOn = true;
+  try { soundOn = localStorage.getItem('catDoctorSound') !== 'off'; } catch(e){}
+  var audioCtx = null;
+  function ctx(){
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
+    }
+    return audioCtx;
+  }
+  function tone(freq, start, dur, type, gain){
+    if (!soundOn) return;
+    var ac = ctx(); if (!ac) return;
+    var osc = ac.createOscillator();
+    var g = ac.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    g.gain.value = 0;
+    osc.connect(g); g.connect(ac.destination);
+    var t0 = ac.currentTime + start;
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(gain || 0.16, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    osc.start(t0); osc.stop(t0 + dur + 0.02);
+  }
+  function playCorrect(){ tone(660,0,.14,'triangle'); tone(880,.1,.18,'triangle'); }
+  function playWrong(){ tone(220,0,.22,'sawtooth',0.1); }
+  function playWin(){ tone(523,0,.13,'triangle'); tone(659,.12,.13,'triangle'); tone(784,.24,.28,'triangle'); }
+  function playClick(){ tone(440,0,.06,'sine',0.08); }
+  function updateSoundIcon(){ soundToggle.textContent = soundOn ? '🔊' : '🔇'; }
+  updateSoundIcon();
+  soundToggle.addEventListener('click', function(){
+    soundOn = !soundOn;
+    try { localStorage.setItem('catDoctorSound', soundOn ? 'on' : 'off'); } catch(e){}
+    updateSoundIcon();
+    if (soundOn) playClick();
+  });
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i=a.length-1; i>0; i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+
+  // ---------- Screen 1: name + age ----------
+  for (var age = 5; age <= 12; age++){
+    (function(ageVal){
+      var chip = document.createElement('div');
+      chip.className = 'age-chip' + (ageVal === state.player.age ? ' active' : '');
+      chip.textContent = ageVal;
+      chip.addEventListener('click', function(){
+        state.player.age = ageVal;
+        Array.prototype.forEach.call(ageRow.children, function(c){ c.classList.remove('active'); });
+        chip.classList.add('active');
+        playClick();
+      });
+      ageRow.appendChild(chip);
+    })(age);
+  }
+  Array.prototype.forEach.call(ageRow.children, function(c){
+    if (parseInt(c.textContent,10) === state.player.age) c.classList.add('active');
+  });
+
+  function goToSubjectScreen(){
+    var name = nameInput.value.trim();
+    if (!name){
+      nameError.textContent = 'Напиши, как тебя зовут 🙂';
+      nameInput.focus();
+      return;
+    }
+    nameError.textContent = '';
+    state.player.name = name;
+    nameScreen.classList.add('hidden');
+    subjectScreen.classList.remove('hidden');
+    subjectGreeting.textContent = 'Привет, ' + name + '!';
+    syncMainButton();
+  }
+  nameNextBtn.addEventListener('click', function(){ playClick(); goToSubjectScreen(); });
+
+  // ---------- Screen 2: subject ----------
+  function buildSubjectGrid(){
+    subjectGrid.innerHTML = '';
+    ['math','reading','world'].forEach(function(key){
+      var meta = SUBJECT_META[key];
+      var el = document.createElement('div');
+      el.className = 'subject-card';
+      el.innerHTML = '<span class="emoji">' + meta.emoji + '</span><span class="name">' + meta.title + '</span>';
+      el.addEventListener('click', function(){ playClick(); startGame(key); });
+      subjectGrid.appendChild(el);
+    });
+    var mixed = document.createElement('div');
+    mixed.className = 'subject-card mixed';
+    mixed.innerHTML = '<span class="emoji">' + SUBJECT_META.mixed.emoji + '</span><span class="name">' + SUBJECT_META.mixed.title + '</span>';
+    mixed.addEventListener('click', function(){ playClick(); startGame('mixed'); });
+    subjectGrid.appendChild(mixed);
+  }
+  buildSubjectGrid();
+
+  // ---------- Screen 3: game ----------
+  function poolFor(subject){
+    if (subject === 'mixed') return BANK.math.concat(BANK.reading, BANK.world);
+    return BANK[subject];
+  }
+
+  // Remembers which questions were already shown per subject (this session),
+  // so a new round pulls fresh ones first and only repeats after the whole pool is used.
+  var usedTracker = { math:{}, reading:{}, world:{}, mixed:{} };
+  function pickRound(subject){
+    var pool = poolFor(subject);
+    var used = usedTracker[subject];
+    var available = pool.filter(function(item){ return !used[item.id]; });
+    if (available.length < ROUND_SIZE){
+      used = usedTracker[subject] = {}; // whole pool has been seen — start a fresh cycle
+      available = pool.slice();
+    }
+    var picked = shuffle(available).slice(0, ROUND_SIZE);
+    picked.forEach(function(item){ used[item.id] = true; });
+    return picked;
+  }
+
+  function renderLives(){
+    livesEl.innerHTML = '';
+    for (var i=0;i<MAX_LIVES;i++){
+      var span = document.createElement('span');
+      span.innerHTML = PAW;
+      if (i >= state.lives) span.firstChild.classList.add('lost');
+      livesEl.appendChild(span);
+    }
+  }
+
+  // ---------- Per-question timer ----------
+  var timerTimeout = null, timerUrgentTimeout = null;
+  var timerFill = document.getElementById('timerFill');
+  function startTimer(){
+    clearTimer();
+    timerFill.classList.remove('urgent');
+    timerFill.style.transition = 'none';
+    timerFill.style.width = '100%';
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        timerFill.style.transition = 'width ' + TIME_PER_Q + 's linear';
+        timerFill.style.width = '0%';
+      });
+    });
+    var urgentAt = Math.max(TIME_PER_Q - 5, 0) * 1000;
+    timerUrgentTimeout = setTimeout(function(){ timerFill.classList.add('urgent'); }, urgentAt);
+    timerTimeout = setTimeout(onTimeUp, TIME_PER_Q * 1000);
+  }
+  function clearTimer(){
+    if (timerTimeout){ clearTimeout(timerTimeout); timerTimeout = null; }
+    if (timerUrgentTimeout){ clearTimeout(timerUrgentTimeout); timerUrgentTimeout = null; }
+  }
+  function onTimeUp(){
+    if (state.answered) return;
+    handleAnswer(null, false, true);
+  }
+
+  function startGame(subject){
+    state.subject = subject;
+    state.order = pickRound(subject);
+    state.idx = 0; state.score = 0; state.lives = MAX_LIVES;
+    subjectScreen.classList.add('hidden');
+    endEl.classList.add('hidden');
+    gameEl.classList.remove('hidden');
+    scoreVal.textContent = '0';
+    renderLives();
+    showQuestion();
+    syncMainButton();
+  }
+
+  function showQuestion(){
+    state.answered = false;
+    var item = state.order[state.idx];
+    patientTag.textContent = SUBJECT_META[state.subject].emoji + ' Пациент ' + (state.idx+1) + ' из ' + state.order.length;
+    questionText.textContent = item.q;
+    feedbackEl.textContent = '';
+    nextBtn.classList.remove('show');
+    progressFill.style.width = Math.round((state.idx/state.order.length)*100) + '%';
+
+    var opts = item.a.map(function(text,i){ return { text:text, correct:i===item.c }; });
+    opts = shuffle(opts);
+    answersEl.innerHTML = '';
+    opts.forEach(function(opt){
+      var btn = document.createElement('button');
+      btn.className = 'answer'; btn.type = 'button'; btn.textContent = opt.text;
+      btn.addEventListener('click', function(){ handleAnswer(btn, opt.correct, false); });
+      answersEl.appendChild(btn);
+    });
+    startTimer();
+    syncMainButton();
+  }
+
+  function correctText(){ var item = state.order[state.idx]; return item.a[item.c]; }
+
+  function handleAnswer(btn, isCorrect, isTimeout){
+    if (state.answered) return;
+    state.answered = true;
+    clearTimer();
+    var buttons = answersEl.querySelectorAll('.answer');
+    buttons.forEach(function(b){ b.disabled = true; });
+
+    if (isCorrect){
+      if (btn) btn.classList.add('correct');
+      state.score += 1; scoreVal.textContent = String(state.score);
+      feedbackEl.textContent = 'Отлично! Пациент здоров 🩺'; feedbackEl.style.color = 'var(--good)';
+      playCorrect();
+    } else {
+      if (btn) btn.classList.add('wrong');
+      buttons.forEach(function(b){ if (b.textContent === correctText()) b.classList.add('correct'); });
+      state.lives -= 1; renderLives();
+      card.classList.add('shake'); setTimeout(function(){ card.classList.remove('shake'); }, 400);
+      feedbackEl.textContent = isTimeout ? 'Время вышло! ⏰' : 'Не в этот раз — попробуем со следующим пациентом.';
+      feedbackEl.style.color = 'var(--wrong)';
+      playWrong();
+    }
+    nextBtn.classList.add('show');
+    nextBtn.textContent = (state.lives <= 0) ? 'Посмотреть результат →' : 'Следующий пациент →';
+    syncMainButton();
+  }
+
+  nextBtn.addEventListener('click', function(){
+    if (state.lives <= 0){ finishGame(false); return; }
+    state.idx += 1;
+    if (state.idx >= state.order.length){ finishGame(true); return; }
+    showQuestion();
+  });
+
+  // ---------- Leaderboard (local to this device) ----------
+  function loadLB(){
+    try { return JSON.parse(localStorage.getItem(LB_KEY) || '[]'); } catch(e){ return []; }
+  }
+  function saveLB(list){ try { localStorage.setItem(LB_KEY, JSON.stringify(list)); } catch(e){} }
+  function addToLB(record){
+    var list = loadLB();
+    list.push(record);
+    list.sort(function(a,b){ return b.score - a.score || b.ts - a.ts; });
+    list = list.slice(0, 10);
+    saveLB(list);
+    return list;
+  }
+  function renderLB(list, myTs){
+    var lbList = document.getElementById('lbList');
+    lbList.innerHTML = '';
+    if (!list.length){ lbList.innerHTML = '<div style="font-size:13px;color:var(--ink-soft);">Здесь появятся лучшие результаты</div>'; return; }
+    list.forEach(function(rec, i){
+      var row = document.createElement('div');
+      row.className = 'lb-row' + (rec.ts === myTs ? ' me' : '');
+      row.innerHTML =
+        '<span class="lb-rank">' + (i+1) + '</span>' +
+        '<span class="lb-sub">' + (SUBJECT_META[rec.subject] ? SUBJECT_META[rec.subject].emoji : '🎲') + '</span>' +
+        '<span class="lb-name">' + escapeHtml(rec.name) + '</span>' +
+        '<span class="lb-score">' + rec.score + '/' + rec.total + '</span>';
+      lbList.appendChild(row);
+    });
+  }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  // ---------- Screen 4: end ----------
+  function finishGame(completed){
+    progressFill.style.width = '100%';
+    gameEl.classList.add('hidden');
+    endEl.classList.remove('hidden');
+
+    var total = state.order.length;
+    var ratio = state.score / total;
+    var starsCount = ratio >= 0.9 ? 3 : ratio >= 0.6 ? 2 : ratio >= 0.3 ? 1 : 0;
+
+    var starsRow = document.getElementById('starsRow');
+    starsRow.innerHTML = '';
+    for (var i=0;i<3;i++){ var s=document.createElement('span'); s.innerHTML = i<starsCount ? STAR_ON : STAR_OFF; starsRow.appendChild(s); }
+
+    document.getElementById('endScore').textContent = state.score + ' / ' + total;
+
+    var titleEl = document.getElementById('endTitle');
+    var textEl = document.getElementById('endText');
+    var mascotEl = document.getElementById('endMascot');
+
+    if (!completed){
+      titleEl.textContent = 'Приём пришлось прервать';
+      textEl.textContent = SUBJECT_META[state.subject].title + ' — но доктор верит, что в следующий раз будет ещё лучше!';
+      mascotEl.innerHTML = MASCOT_SAD;
+    } else if (starsCount === 3){
+      titleEl.textContent = 'Все пациенты здоровы!';
+      textEl.textContent = SUBJECT_META[state.subject].title + ' — идеальный приём!';
+      mascotEl.innerHTML = MASCOT_HAPPY;
+      launchConfetti();
+      playWin();
+    } else {
+      titleEl.textContent = 'Приём окончен!';
+      textEl.textContent = SUBJECT_META[state.subject].title + ' пройден';
+      mascotEl.innerHTML = MASCOT_HAPPY;
+    }
+
+    var record = { name: state.player.name || 'Гость', age: state.player.age, subject: state.subject, score: state.score, total: total, ts: Date.now() };
+    var list = addToLB(record);
+    renderLB(list, record.ts);
+    syncMainButton();
+  }
+
+  function launchConfetti(){
+    var colors = ['#FF7A59','#FFC857','#3FBF8F','#B9DDEF'];
+    for (var i=0;i<26;i++){
+      (function(){
+        var piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = Math.random()*100 + 'vw';
+        piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+        var dur = 2.4 + Math.random()*1.6;
+        piece.style.animationDuration = dur + 's';
+        piece.style.opacity = String(0.85 + Math.random()*0.15);
+        document.body.appendChild(piece);
+        setTimeout(function(){ piece.remove(); }, dur*1000 + 100);
+      })();
+    }
+  }
+
+  restartBtn.addEventListener('click', function(){
+    endEl.classList.add('hidden');
+    subjectScreen.classList.remove('hidden');
+    syncMainButton();
+  });
+
+  // ---------- Telegram Web App integration ----------
+  var tg = window.Telegram && window.Telegram.WebApp;
+  var inTelegram = !!(tg && tg.initData);
+
+  if (tg) {
+    try {
+      tg.ready(); tg.expand();
+      if (inTelegram) {
+        document.body.classList.add('tg-mode');
+        if (tg.setHeaderColor) tg.setHeaderColor('secondary_bg_color');
+        if (tg.setBackgroundColor && tg.themeParams && tg.themeParams.bg_color) tg.setBackgroundColor(tg.themeParams.bg_color);
+        tg.MainButton.setParams({ color:'#FF7A59', text_color:'#FFFFFF' });
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.first_name){
+          nameInput.value = tg.initDataUnsafe.user.first_name;
+        }
+      }
+    } catch(e){}
+  }
+
+  function currentScreen(){
+    if (!nameScreen.classList.contains('hidden')) return 'name';
+    if (!subjectScreen.classList.contains('hidden')) return 'subject';
+    if (!gameEl.classList.contains('hidden')) return 'game';
+    return 'end';
+  }
+
+  function syncMainButton(){
+    if (!inTelegram) return;
+    var screen = currentScreen();
+    if (screen === 'name'){ tg.MainButton.setText('Дальше'); tg.MainButton.show(); }
+    else if (screen === 'subject'){ tg.MainButton.hide(); }
+    else if (screen === 'game'){
+      if (nextBtn.classList.contains('show')){ tg.MainButton.setText(nextBtn.textContent.replace(' →','')); tg.MainButton.show(); }
+      else tg.MainButton.hide();
+    } else { tg.MainButton.setText('Новый приём'); tg.MainButton.show(); }
+  }
+
+  if (inTelegram){
+    tg.MainButton.onClick(function(){
+      var screen = currentScreen();
+      if (screen === 'name') goToSubjectScreen();
+      else if (screen === 'game') nextBtn.click();
+      else if (screen === 'end') restartBtn.click();
+      syncMainButton();
+    });
+    syncMainButton();
+  }
+
+  function haptic(kind){ if (inTelegram && tg.HapticFeedback){ try{ tg.HapticFeedback.notificationOccurred(kind); }catch(e){} } }
+  var _handleAnswer = handleAnswer;
+  handleAnswer = function(btn, isCorrect, isTimeout){ _handleAnswer(btn, isCorrect, isTimeout); haptic(isCorrect ? 'success' : 'error'); };
+
+})();
+</script>
+</body>
+</html>
