@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
+import { serve } from 'https://deno.land/std@0.224.0/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' }
@@ -15,9 +15,7 @@ async function telegramUser(initData: string, token: string) {
   const data = [...p.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}=${v}`).join('\n')
   const secret = await hmac(new TextEncoder().encode('WebAppData'), token)
   if (hex(await hmac(secret, data)) !== hash) throw new Error('invalid Telegram signature')
-  const user = JSON.parse(p.get('user') || 'null')
-  if (!user?.id) throw new Error('Telegram user missing')
-  return user
+  const user = JSON.parse(p.get('user') || 'null'); if (!user?.id) throw new Error('Telegram user missing'); return user
 }
 serve(async req => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
@@ -41,9 +39,20 @@ serve(async req => {
     }
     const { data: profile, error: profileError } = await admin.from('profiles').select('id').eq('user_id', userId).single(); if (profileError || !profile) return json({ error: 'profile not found' }, 404)
     if (action === 'save_progress') {
-      const allowed = ['locked', 'available', 'in_progress', 'completed']; if (!allowed.includes(payload.status) || !payload.lessonId) return json({ error: 'invalid progress' }, 400)
-      const row = { profile_id: profile.id, lesson_id: String(payload.lessonId), status: payload.status, score: Number(payload.score || 0), mastery: Number(payload.mastery || 0), attempts: Number(payload.attempts || 0), started_at: payload.startedAt || null, completed_at: payload.completedAt || null, xp: Number(payload.xp || 0), stars: Number(payload.stars || 0) }
-      const { data, error } = await admin.from('lesson_progress').upsert(row, { onConflict: 'profile_id,lesson_id' }).select().single(); if (error) throw error
+      const lessonId = String(payload.lessonId || ''), status = String(payload.status || ''); if (!lessonId || !['in_progress', 'completed'].includes(status)) return json({ error: 'invalid progress' }, 400)
+      const { count: total, error: countError } = await admin.from('activities').select('id', { count: 'exact', head: true }).eq('lesson_id', lessonId); if (countError) throw countError
+      const totalSteps = Math.max(1, total || 1), score = Math.max(0, Math.min(totalSteps, Math.floor(Number(payload.score || 0))))
+      if (status === 'in_progress') {
+        const { data, error } = await admin.from('lesson_progress').upsert({ profile_id: profile.id, lesson_id: lessonId, status, score, mastery: 0, attempts: Math.max(0, Math.floor(Number(payload.attempts || 0))), started_at: payload.startedAt || new Date().toISOString(), xp: 0, stars: 0 }, { onConflict: 'profile_id,lesson_id' }).select().single(); if (error) throw error; return json({ ok: true, progress: data })
+      }
+      const accuracy = score / totalSteps, stars = accuracy >= .9 ? 3 : accuracy >= .6 ? 2 : accuracy >= .3 ? 1 : 0, rewardKey = `lesson:${lessonId}:completion`
+      const { data: reward } = await admin.from('reward_transactions').select('amount').eq('profile_id', profile.id).eq('reward_key', rewardKey).maybeSingle()
+      const xp = reward ? 0 : 20 + score * 10
+      if (!reward) { const { error: re } = await admin.from('reward_transactions').insert({ profile_id: profile.id, reward_key: rewardKey, amount: xp }); if (re && re.code !== '23505') throw re }
+      const finalXp = reward ? 0 : xp
+      const { data: existing } = await admin.from('lesson_progress').select('xp,stars,attempts,started_at').eq('profile_id', profile.id).eq('lesson_id', lessonId).maybeSingle()
+      const storedXp = existing?.xp || finalXp, storedStars = existing?.stars || stars
+      const { data, error } = await admin.from('lesson_progress').upsert({ profile_id: profile.id, lesson_id: lessonId, status: 'completed', score, mastery: accuracy, attempts: (existing?.attempts || 0) + 1, started_at: payload.startedAt || existing?.started_at || null, completed_at: new Date().toISOString(), xp: storedXp, stars: storedStars }, { onConflict: 'profile_id,lesson_id' }).select().single(); if (error) throw error
       return json({ ok: true, progress: data })
     }
     if (action === 'analytics') { const eventName = String(payload.eventName || '').slice(0, 80); if (!eventName) return json({ error: 'eventName required' }, 400); const { error } = await admin.from('analytics_events').insert({ profile_id: profile.id, event_name: eventName, payload: payload.payload || {} }); if (error) throw error; return json({ ok: true }) }
