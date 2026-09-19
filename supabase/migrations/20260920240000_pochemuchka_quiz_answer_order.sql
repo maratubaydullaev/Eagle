@@ -20,9 +20,9 @@ begin
     v_answers := r.content->'answers';
     if jsonb_typeof(v_answers) = 'array' and jsonb_array_length(v_answers) = 3 then
       v_new_answers := jsonb_build_array(
-        v_answers->((0 + v_shift) % 3),
-        v_answers->((1 + v_shift) % 3),
-        v_answers->((2 + v_shift) % 3)
+        jsonb_build_object('id','0','text',v_answers->((0 + v_shift) % 3)->>'text'),
+        jsonb_build_object('id','1','text',v_answers->((1 + v_shift) % 3)->>'text'),
+        jsonb_build_object('id','2','text',v_answers->((2 + v_shift) % 3)->>'text')
       );
 
       update activities
