@@ -258,45 +258,20 @@ serve(async (req) => {
     if (body.action === 'purchase_gift') {
       const giftId = String(body.payload?.giftId || '')
       const giftCosts: Record<string, number> = { sticker: 5, avatar: 10, treasure: 15 }
-      const cost = giftCosts[giftId]
-      if (!cost) return json({ error: 'unknown gift' }, 400)
+      if (!giftCosts[giftId]) return json({ error: 'unknown gift' }, 400)
 
-      const { data: purchases, error: purchaseReadError } = await admin
-        .from('analytics_events')
-        .select('payload,created_at')
-        .eq('profile_id', profile.id)
-        .eq('event_name', 'gift_purchased')
-        .order('created_at', { ascending: true })
-      if (purchaseReadError) throw purchaseReadError
+      const { data, error } = await admin.rpc('purchase_gift_atomic', {
+        p_profile_id: profile.id,
+        p_gift_id: giftId,
+      })
+      if (error) throw error
 
-      const purchasedGifts = (purchases || [])
-        .map((row: any) => String(row.payload?.giftId || ''))
-        .filter(Boolean)
-      if (purchasedGifts.includes(giftId)) {
-        const earned = await admin.from('lesson_progress').select('stars').eq('profile_id', profile.id)
-        if (earned.error) throw earned.error
-        const stars = Math.max(0, (earned.data || []).reduce((n: number, row: any) => n + Number(row.stars || 0), 0) - purchasedGifts.reduce((n, id) => n + (giftCosts[id] || 0), 0))
-        return json({ ok: true, alreadyPurchased: true, stars, purchasedGifts })
+      if (data?.error) {
+        const status = data.error === 'already_purchased' ? 200 : data.error === 'not_enough_stars' ? 400 : 400
+        return json(data, status)
       }
 
-      const { data: progressRows, error: starError } = await admin
-        .from('lesson_progress')
-        .select('stars')
-        .eq('profile_id', profile.id)
-      if (starError) throw starError
-      const earnedStars = (progressRows || []).reduce((n: number, row: any) => n + Number(row.stars || 0), 0)
-      const spentStars = purchasedGifts.reduce((n, id) => n + (giftCosts[id] || 0), 0)
-      const stars = earnedStars - spentStars
-      if (stars < cost) return json({ error: 'not enough stars', stars: Math.max(0, stars) }, 400)
-
-      const { error: purchaseError } = await admin.from('analytics_events').insert({
-        profile_id: profile.id,
-        event_name: 'gift_purchased',
-        payload: { giftId, cost },
-      })
-      if (purchaseError) throw purchaseError
-
-      return json({ ok: true, stars: stars - cost, purchasedGifts: [...purchasedGifts, giftId] })
+      return json(data)
     }
 
     if (body.action === 'leaderboard') {
