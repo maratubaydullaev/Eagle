@@ -2,14 +2,17 @@ import type { AppState, ChildProfile, Lesson, LessonProgress } from '../app/type
 import { lessons } from '../content/content'
 
 const KEY = 'pochemuchka_state_v1'
-const emptyState = (): AppState => ({ profile: null, progress: {}, activityMastery: {}, xp: 0, stars: 0 })
+export const gifts = { sticker: 5, avatar: 10, treasure: 15 } as const
+const emptyState = (): AppState => ({ profile: null, progress: {}, activityMastery: {}, xp: 0, stars: 0, purchasedGifts: [] })
 
 function getStore(): Storage | null {
   try { return typeof localStorage !== 'undefined' ? localStorage : null } catch { return null }
 }
 function recalc(state: AppState): AppState {
   state.xp = Object.values(state.progress).reduce((n, p) => n + p.xp, 0)
-  state.stars = Object.values(state.progress).reduce((n, p) => n + p.stars, 0)
+  const earned = Object.values(state.progress).reduce((n, p) => n + p.stars, 0)
+  const spent = state.purchasedGifts.reduce((n, id) => n + (gifts[id as keyof typeof gifts] || 0), 0)
+  state.stars = Math.max(0, earned - spent)
   return state
 }
 export const storage = {
@@ -18,12 +21,23 @@ export const storage = {
       const raw = getStore()?.getItem(KEY)
       if (!raw) return emptyState()
       const parsed = JSON.parse(raw)
-      return { ...emptyState(), ...parsed, activityMastery: parsed.activityMastery || {} }
+      return { ...emptyState(), ...parsed, activityMastery: parsed.activityMastery || {}, purchasedGifts: Array.isArray(parsed.purchasedGifts) ? parsed.purchasedGifts : [] }
     } catch { return emptyState() }
   },
   save(state: AppState) { getStore()?.setItem(KEY, JSON.stringify(recalc(state))) },
   profile(profile: ChildProfile) { const state = this.load(); state.profile = profile; this.save(state); return state },
   progress(progress: LessonProgress) { const state = this.load(); state.progress[progress.lessonId] = progress; state.lastLessonId = progress.lessonId; this.save(state); return state },
+  purchaseGift(giftId: string) {
+    const state = this.load()
+    if (!(giftId in gifts) || state.purchasedGifts.includes(giftId)) return state
+    const cost = gifts[giftId as keyof typeof gifts]
+    const earned = Object.values(state.progress).reduce((n, p) => n + p.stars, 0)
+    const spent = state.purchasedGifts.reduce((n, id) => n + (gifts[id as keyof typeof gifts] || 0), 0)
+    if (earned - spent < cost) return state
+    state.purchasedGifts = [...state.purchasedGifts, giftId]
+    this.save(state)
+    return state
+  },
   activityMastery(activityId: string, correct: boolean) {
     const state = this.load()
     const previous = state.activityMastery[activityId] ?? 0
