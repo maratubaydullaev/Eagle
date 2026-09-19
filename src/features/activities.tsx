@@ -153,20 +153,44 @@ export function MatchingActivity({ activity, onResult, onAttempt }: { activity: 
     reportAttempt(onAttempt, ok, { first, second: value }, Date.now() - startedAt)
   }
 
+  const left = d.pairs.map((pair: string[]) => pair[0])
+  const right = d.pairs.map((pair: string[]) => pair[1]).reverse()
+
   return <div className="activity">
     <h2>{activity.instructions}</h2>
-    <div className="match-grid">
-      {d.pairs.flat().map((value: string) =>
-        <button
-          key={value}
-          disabled={finished || done.includes(value)}
-          className={selected === value ? 'selected' : done.includes(value) ? 'matched' : ''}
-          aria-pressed={selected === value}
-          onClick={() => choose(value)}
-        >
-          {value}
-        </button>
-      )}
+    <div className="match-columns">
+      <div className="match-column">
+        <h3>Выбери первый элемент</h3>
+        <div className="match-options">
+          {left.map((value: string) =>
+            <button
+              key={value}
+              disabled={finished || done.includes(value)}
+              className={selected === value ? 'selected' : done.includes(value) ? 'matched' : ''}
+              aria-pressed={selected === value}
+              onClick={() => choose(value)}
+            >
+              {value}
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="match-column">
+        <h3>Выбери пару</h3>
+        <div className="match-options">
+          {right.map((value: string) =>
+            <button
+              key={value}
+              disabled={finished || done.includes(value)}
+              className={selected === value ? 'selected' : done.includes(value) ? 'matched' : ''}
+              aria-pressed={selected === value}
+              onClick={() => choose(value)}
+            >
+              {value}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
     {wrong && !finished && <div className="feedback bad" role="status">Эта пара не подходит. Попробуй ещё раз 💪</div>}
     {finished && <>
