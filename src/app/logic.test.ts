@@ -18,7 +18,7 @@ describe('POCHEMUЧКА MVP content', () => {
   it('compass matching uses the requested labels and instruction', () => {
     const activity = lessons.flatMap(l => l.steps).find(a => a.id === 'w2b')!
     expect(activity.instructions).toBe('Подбери пару: выбери сторону света, затем её обозначение.')
-    expect((activity.data as any).pairs).toEqual([['Север', 'Nord'], ['Юг', 'Sud'], ['Восток', 'Est'], ['Запад', 'West']])
+    expect((activity.data as any).pairs).toEqual([['Север', 'North'], ['Юг', 'South'], ['Восток', 'East'], ['Запад', 'West']])
   })
   it('every lesson has at least two activities', () => expect(lessons.every(l => l.steps.length >= 2)).toBe(true))
   it('age adaptation uses the agreed quiz timers', () => { expect(ageAdaptation.timerSeconds(6)).toBe(20); expect(ageAdaptation.timerSeconds(8)).toBe(17); expect(ageAdaptation.timerSeconds(10)).toBe(15) })
