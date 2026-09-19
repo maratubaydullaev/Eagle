@@ -1,4 +1,4 @@
-import type { AppState, ActivityAttempt, ChildProfile, LessonProgress, LeaderboardEntry } from '../app/types'
+import type { AppState, ActivityAttempt, ChildProfile, LessonProgress } from '../app/types'
 import { gifts, gradeForAge, telegram } from './core'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
@@ -77,10 +77,6 @@ export const backend = {
     const body = await call('purchase_gift', { giftId })
     if (!body) throw new Error('backend unavailable')
     return { stars: Number(body.stars || 0), purchasedGifts: (body.purchasedGifts || []).map(String) }
-  },
-  async getLeaderboard(): Promise<LeaderboardEntry[]> {
-    const body = await call('leaderboard')
-    return body ? (body.leaderboard || []) as LeaderboardEntry[] : []
   },
   async getDueReviews(): Promise<LessonProgress[]> {
     const body = await call('due_reviews')
