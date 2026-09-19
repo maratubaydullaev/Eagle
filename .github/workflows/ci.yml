@@ -16,6 +16,8 @@ jobs:
       - run: npm install
       - run: npm test
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
       - uses: denoland/setup-deno@v1
         with:
           deno-version: v2.x
