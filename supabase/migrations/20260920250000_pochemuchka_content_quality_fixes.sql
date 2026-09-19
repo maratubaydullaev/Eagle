@@ -1,5 +1,6 @@
 -- POCHEMUЧКА: content quality fixes for the current curriculum.
 -- Safe to re-run. Keeps the frontend and database content aligned.
+-- Deployed only after the curriculum answer-order migration.
 
 update activities
 set content = jsonb_set(
