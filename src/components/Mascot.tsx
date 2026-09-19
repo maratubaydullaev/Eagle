@@ -8,7 +8,7 @@ export function Mascot({ mood = 'normal' }: { mood?: 'normal' | 'happy' | 'sad' 
   const eyeY = mood === 'thinking' ? 58 : 61
 
   return (
-    <svg viewBox="0 0 120 120" className="mascot" aria-label="Котёнок-Доктор" role="img">
+    <svg viewBox="0 0 120 120" className={`mascot mascot-${mood}`} aria-label="Котёнок-Доктор" role="img">
       <ellipse cx="60" cy="73" rx="39" ry="35" fill="#F59B5B" />
       <path d="M27 51 L31 17 L51 43 ZM93 51 L89 17 L69 43 Z" fill="#F59B5B" />
       <path d="M34 53 Q60 39 86 53 L81 82 Q60 94 39 82 Z" fill="#FFFDFB" />
