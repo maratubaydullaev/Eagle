@@ -26,16 +26,25 @@ jobs:
             exit 1
           fi
 
-      - name: Apply MVP database migration
+      - name: Apply database migrations
         shell: bash
         run: |
           set -euo pipefail
-          SQL_FILE="supabase/migrations/20260919210000_mvp_data_consistency_and_gift_transactions.sql"
-          if [ ! -f "$SQL_FILE" ]; then
-            echo "Migration file not found: $SQL_FILE"
-            exit 1
-          fi
-
-          jq -n --rawfile query "$SQL_FILE" '{query: $query}' > payload.json
-
-          curl --fail-with-body --silent --show-error             --request POST             --url "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID/database/query"             --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN"             --header "Content-Type: application/json"             --data-binary @payload.json
+          for SQL_FILE in \
+            supabase/migrations/20260919210000_mvp_data_consistency_and_gift_transactions.sql \
+            supabase/migrations/20260920230000_pochemuchka_curriculum_v2.sql \
+            supabase/migrations/20260920240000_pochemuchka_quiz_answer_order.sql
+          do
+            if [ ! -f "$SQL_FILE" ]; then
+              echo "Migration file not found: $SQL_FILE"
+              exit 1
+            fi
+            echo "Applying $SQL_FILE"
+            jq -n --rawfile query "$SQL_FILE" '{query: $query}' > payload.json
+            curl --fail-with-body --silent --show-error \
+              --request POST \
+              --url "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID/database/query" \
+              --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+              --header "Content-Type: application/json" \
+              --data-binary @payload.json
+          done
