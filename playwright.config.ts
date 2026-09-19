@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
   testDir: './e2e',
@@ -14,8 +14,8 @@ export default defineConfig({
     reuseExistingServer: true,
   },
   projects: [
-    { name: 'mobile-375', use: { ...devices['iPhone SE'] } },
-    { name: 'mobile-390', use: { ...devices['iPhone 13'] } },
-    { name: 'mobile-412', use: { ...devices['Pixel 7'] } },
+    { name: 'mobile-375', use: { viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true } },
+    { name: 'mobile-390', use: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
+    { name: 'mobile-412', use: { viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true } },
   ],
 })
