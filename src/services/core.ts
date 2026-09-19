@@ -92,13 +92,18 @@ let sound = getStore()?.getItem('pochemuchka_sound') !== 'off'
 let audioContext: AudioContext | null = null
 function tone(frequency: number, duration = .1) {
   if (!sound || typeof AudioContext === 'undefined') return
-  audioContext ??= new AudioContext()
-  const oscillator = audioContext.createOscillator(), gain = audioContext.createGain()
-  oscillator.frequency.value = frequency; oscillator.connect(gain); gain.connect(audioContext.destination)
-  gain.gain.setValueAtTime(.001, audioContext.currentTime)
-  gain.gain.exponentialRampToValueAtTime(.08, audioContext.currentTime + .02)
-  gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + duration)
-  oscillator.start(); oscillator.stop(audioContext.currentTime + duration + .02)
+  try {
+    audioContext ??= new AudioContext()
+    const oscillator = audioContext.createOscillator(), gain = audioContext.createGain()
+    oscillator.frequency.value = frequency; oscillator.connect(gain); gain.connect(audioContext.destination)
+    gain.gain.setValueAtTime(.001, audioContext.currentTime)
+    gain.gain.exponentialRampToValueAtTime(.08, audioContext.currentTime + .02)
+    gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + duration)
+    oscillator.start(); oscillator.stop(audioContext.currentTime + duration + .02)
+  } catch {
+    // Audio is optional. Never let a restricted WebView break gameplay.
+    audioContext = null
+  }
 }
 export const audio = {
   correct() { tone(660); setTimeout(() => tone(880), 70) },

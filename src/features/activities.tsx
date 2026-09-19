@@ -14,17 +14,20 @@ export function QuizActivity({ activity, onResult, onAttempt, timerSeconds = 15 
     if (remaining !== 0 || answer) return
     setAnswer('__timeout__')
     void Promise.resolve(onAttempt(false, null, Date.now() - startedAt)).catch(() => {})
-    audio.wrong(); telegram.haptic('error')
     window.setTimeout(() => onResult(false), 550)
+    try { audio.wrong() } catch {}
+    try { telegram.haptic('error') } catch {}
   }, [remaining, answer, onAttempt, onResult, startedAt])
   async function pick(id: string) {
     if (answer) return
     setAnswer(id)
     const ok = id === d.correctAnswerId
     void Promise.resolve(onAttempt(ok, id, Date.now() - startedAt)).catch(() => {})
-    ok ? audio.correct() : audio.wrong()
-    telegram.haptic(ok ? 'success' : 'error')
+    // Schedule lesson transition before optional sound/haptic side effects.
+    // A restricted WebView can throw when creating AudioContext; that must never block gameplay.
     window.setTimeout(() => onResult(ok), 550)
+    try { ok ? audio.correct() : audio.wrong() } catch {}
+    try { telegram.haptic(ok ? 'success' : 'error') } catch {}
   }
   return <div className="activity">
     <div className="activity-meta"><span>⏱ {remaining} сек.</span></div>
