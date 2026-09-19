@@ -3,8 +3,11 @@ import { lessons, worlds } from '../content/content'
 import { learning, repetition, storage, ageAdaptation, gradeForAge } from '../services/core'
 
 describe('POCHEMUЧКА MVP content', () => {
-  it('has 13 MVP lessons', () => expect(lessons).toHaveLength(13))
-  it('has the MVP world lesson distribution', () => expect(Object.fromEntries(['world','math','animals','languages'].map(id => [id, lessons.filter(l => l.worldId === id).length]))).toEqual({ world: 3, math: 4, animals: 3, languages: 3 }))
+  it('has 12 curriculum lessons', () => expect(lessons).toHaveLength(12))
+  it('has four active curriculum worlds', () => expect(worlds.filter(w => w.isActive).map(w => w.id)).toEqual(['world','animals','languages','math']))
+  it('has 200 curriculum activities', () => expect(lessons.flatMap(l => l.steps)).toHaveLength(200))
+  it('has 50 questions per topic', () => { for (const worldId of ['world','animals','languages','math']) expect(lessons.filter(l => l.worldId === worldId).flatMap(l => l.steps)).toHaveLength(50) })
+  it('has 15/15/20 questions per grade', () => { expect(lessons.filter(l => l.grade === 1).flatMap(l => l.steps)).toHaveLength(60); expect(lessons.filter(l => l.grade === 2).flatMap(l => l.steps)).toHaveLength(60); expect(lessons.filter(l => l.grade === 3).flatMap(l => l.steps)).toHaveLength(80) })
   it('has four active MVP worlds', () => expect(worlds.filter(w => w.isActive).map(w => w.id)).toEqual(['world', 'math', 'animals', 'languages']))
   it('lesson ids are unique', () => expect(new Set(lessons.map(l => l.id)).size).toBe(13))
   it('locks a lesson with any mistake until the next day', () => {
