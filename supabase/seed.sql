@@ -236,6 +236,29 @@ insert into activities(id,lesson_id,type,order_index,content,config) values
 ('math-3-20','math-3','quiz',20,'{"question":"Машина ехала 2 часа со скоростью 60 км/ч. Какое расстояние она проехала?","answers":[{"id":"0","text":"30 км"},{"id":"1","text":"120 км."},{"id":"2","text":"60 км"}],"correctAnswerId":"1","explanation":"Расстояние = скорость × время: 60 × 2 = 120 км."}'::jsonb,'{"xp":10,"answerOrderVersion":1}'::jsonb)
 on conflict(id) do update set lesson_id=excluded.lesson_id,type=excluded.type,order_index=excluded.order_index,content=excluded.content,config=excluded.config;
 
+update activities
+set content = jsonb_set(
+  jsonb_set(
+    content,
+    '{question}',
+    to_jsonb('Какой знак ставят между числами, если первое число больше второго?'::text),
+    true
+  ),
+  '{explanation}',
+  to_jsonb('Знак > показывает, что число слева больше числа справа.'::text),
+  true
+)
+where id = 'math-1-09';
+
+update activities
+set content = jsonb_set(
+  content,
+  '{explanation}',
+  to_jsonb('Было 10 конфет. Если отдать 3, остаётся 10 − 3 = 7 конфет.'::text),
+  true
+)
+where id = 'math-1-15';
+
 update lessons set is_active=(id in ('nature-1','nature-2','nature-3','animals-1','animals-2','animals-3','language-1','language-2','language-3','math-1','math-2','math-3')) where topic_id in ('world-basics','animals-basics','languages-basics','math-basics');
 
 do $$
