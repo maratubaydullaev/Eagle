@@ -3,5 +3,8 @@ dist/
 .env
 .env.*
 !.env.example
-.DS_Store
+*.DS_Store
+**/.DS_Store
+__MACOSX/
+._*
 *.log
