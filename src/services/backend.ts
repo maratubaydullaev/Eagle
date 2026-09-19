@@ -1,6 +1,5 @@
 import type { AppState, ActivityAttempt, ChildProfile, LessonProgress, LeaderboardEntry } from '../app/types'
-import { gifts } from './core'
-import { telegram } from './core'
+import { gifts, gradeForAge, telegram } from './core'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const configured = Boolean(url && telegram.initData)
@@ -43,6 +42,7 @@ export const backend = {
           id: body.profile.id,
           name: body.profile.name,
           age: body.profile.age,
+          grade: body.profile.grade || gradeForAge(Number(body.profile.age)),
           avatar: body.profile.avatar || '🐱',
           createdAt: body.profile.created_at,
           updatedAt: body.profile.updated_at,
