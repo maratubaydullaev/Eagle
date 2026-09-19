@@ -255,27 +255,25 @@ serve(async (req) => {
         .eq('status', 'completed')
       if (progressError) throw progressError
 
-      const totals = new Map<string, { points: number; completedLessons: number }>()
+      const totals = new Map<string, { points: number }>()
       for (const row of progressRows || []) {
-        const current = totals.get(row.profile_id) || { points: 0, completedLessons: 0 }
+        const current = totals.get(row.profile_id) || { points: 0 }
         current.points += Number(row.xp || 0)
-        current.completedLessons += 1
         totals.set(row.profile_id, current)
       }
 
       const leaderboard = (profiles || [])
         .map((p: any) => {
-          const total = totals.get(p.id) || { points: 0, completedLessons: 0 }
+          const total = totals.get(p.id) || { points: 0 }
           return {
             profileId: p.id,
             name: String(p.name || 'Ученик').slice(0, 40),
             avatar: String(p.avatar || '🐱').slice(0, 8),
             points: total.points,
-            completedLessons: total.completedLessons,
-          }
+                      }
         })
-        .filter((entry) => entry.points > 0 || entry.completedLessons > 0)
-        .sort((a, b) => b.points - a.points || b.completedLessons - a.completedLessons || a.name.localeCompare(b.name))
+        .filter((entry) => entry.points > 0)
+        .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name))
         .slice(0, 100)
         .map((entry, index) => ({ rank: index + 1, ...entry, isCurrentUser: entry.profileId === profile.id }))
 
