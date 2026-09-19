@@ -75,6 +75,7 @@ function Home({ s, nav }: { s: AppState; nav: (r: string) => void }) {
       <div className="world-grid">
         {worlds.filter((w) => w.isActive).map((w) => {
           const ls = lessons.filter((l) => l.worldId === w.id && l.grade === grade)
+          if (!ls.length) return null
           const done = ls.filter((l) => s.progress[l.id]?.status === 'completed').length
           const width = ls.length ? done / ls.length * 100 : 0
           return (
