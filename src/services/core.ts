@@ -36,6 +36,11 @@ export const storage = {
 export const learning = {
   status(state: AppState, lesson: Lesson) {
     const progress = state.progress[lesson.id]
+    if (progress?.status === 'completed') {
+      const reviewAt = progress.nextReviewAt ? new Date(progress.nextReviewAt) : null
+      if (reviewAt && reviewAt > new Date()) return 'completed_locked'
+      return 'available'
+    }
     if (progress) return progress.status
     const age = state.profile?.age || 7
     const available = lessons.filter(x => x.worldId === lesson.worldId && x.ageMin <= age && x.ageMax >= age).sort((a,b) => a.orderIndex - b.orderIndex)
@@ -117,7 +122,7 @@ export const repetition = {
   intervals: [1, 3, 7],
   needsPractice: (progress: LessonProgress) => progress.attempts > 0 && progress.mastery < .7,
   nextDate: (progress: LessonProgress) => {
-    const interval = progress.mastery < .4 ? 1 : progress.mastery < .7 ? 3 : 7
+    const interval = progress.mastery < 1 ? 1 : 7
     const date = new Date(progress.completedAt || Date.now())
     date.setDate(date.getDate() + interval)
     return date
