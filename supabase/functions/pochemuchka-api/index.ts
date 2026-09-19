@@ -158,10 +158,9 @@ serve(async (req) => {
             .order('created_at', { ascending: true })
             .limit(1000),
           admin
-            .from('analytics_events')
-            .select('payload,created_at')
+            .from('gift_purchases')
+            .select('gift_id,created_at')
             .eq('profile_id', profile.id)
-            .eq('event_name', 'gift_purchased')
             .order('created_at', { ascending: true })
             .limit(100),
         ])
@@ -176,7 +175,7 @@ serve(async (req) => {
         profile,
         progress: progressRows,
         activityAttempts: attempts || [],
-        giftPurchases: (giftPurchases || []).map((row: any) => ({ gift_id: String(row.payload?.giftId || '') })).filter((row: any) => row.gift_id),
+        giftPurchases: (giftPurchases || []).map((row: any) => ({ gift_id: String(row.gift_id || '') })).filter((row: any) => row.gift_id),
       })
     }
 
