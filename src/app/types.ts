@@ -14,6 +14,4 @@ export interface Topic{id:string;worldId:string;title:string;description:string;
 export interface World{id:string;title:string;description:string;icon:string;orderIndex:number;isActive:boolean}
 export interface LessonProgress{id:string;profileId:string;lessonId:string;status:LessonStatus;score:number;mastery:number;attempts:number;startedAt?:string;completedAt?:string;nextReviewAt?:string;xp:number;stars:number}
 export interface ActivityAttempt{id:string;profileId:string;activityId:string;isCorrect:boolean;answer?:unknown;timeSpent?:number;createdAt:string}
-export interface LeaderboardLesson{lessonId:string;title:string;completed:boolean}
-export interface LeaderboardEntry{rank:number;profileId:string;name:string;avatar:string;points:number;completedLessons:number;totalLessons:number;lessons:LeaderboardLesson[];isCurrentUser?:boolean}
 export interface AppState{profile:ChildProfile|null;progress:Record<string,LessonProgress>;activityMastery:Record<string,number>;xp:number;stars:number;purchasedGifts:string[];lastLessonId?:string}
