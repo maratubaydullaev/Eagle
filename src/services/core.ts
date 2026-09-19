@@ -47,7 +47,7 @@ export const storage = {
   }
 }
 
-export const gradeForAge = (age: number): Grade => age <= 7 ? 1 : age === 8 ? 2 : 3
+export const gradeForAge = (age: number): Grade => age <= 6 ? 1 : age <= 8 ? 2 : 3
 
 export const learning = {
   status(state: AppState, lesson: Lesson) {
