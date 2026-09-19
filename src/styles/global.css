@@ -360,3 +360,89 @@ button:focus-visible,input:focus-visible{
 .home-learning-action div{flex:1}.home-learning-action small,.home-learning-action b{display:block}.home-learning-action small{font-size:8px;font-weight:900;letter-spacing:.1em;color:#7C9994}.home-learning-action b{font-size:12px;margin-top:2px}.home-learning-action strong{font-size:17px;color:#7AA29C}
 .home-gifts{margin-top:10px!important}.home-gifts .section-title{margin-bottom:8px}.home-tip{margin-top:10px!important}
 @media(max-width:380px){.home-greeting h1{font-size:21px}.cat-hero{min-height:158px;padding-left:13px}.cat-hero-copy{width:69%}.cat-hero h2{font-size:18px}.cat-hero-mascot{width:36%}.cat-hero-action{font-size:10px!important}.home-world-card{min-height:101px;padding:9px}.home-world-card .world-icon{width:38px;height:38px;font-size:22px}}
+\n
+/* APPROVED HOME — Variant A / 1:1 visual implementation */
+.top{display:none!important}
+.app{max-width:980px;margin:0 auto;padding-bottom:92px!important;background:linear-gradient(180deg,#DFF4FF 0%,#F0FBF8 36%,#ECFAF7 100%);min-height:100vh}
+.home-approved{padding:18px 24px 18px;position:relative;overflow:hidden}
+.home-approved:before{content:"";position:absolute;left:-180px;top:230px;width:360px;height:360px;border-radius:50%;background:rgba(191,230,255,.28);filter:blur(10px);pointer-events:none}
+.home-approved:after{content:"";position:absolute;right:-180px;top:700px;width:360px;height:360px;border-radius:50%;background:rgba(255,225,168,.22);filter:blur(10px);pointer-events:none}
+.home-greeting{position:relative;z-index:2;margin:8px 4px 16px;display:block}
+.home-greeting .eyebrow{display:none!important}
+.home-greeting h1{font-size:38px!important;line-height:1.04!important;margin:0 0 6px!important;color:#102D5F!important;font-weight:900}
+.home-greeting>div>p:not(.eyebrow){font-size:18px!important;color:#315779!important;margin:0!important}
+.home-profile-mini{position:absolute;right:4px;top:0;width:56px;height:56px;border-radius:50%;background:#fff;border:1px solid #DCEAF1;font-size:0;box-shadow:0 8px 20px rgba(56,92,111,.12)}
+.home-profile-mini:after{content:"🔔";font-size:25px}
+.cat-hero{position:relative;z-index:2;min-height:355px!important;margin:0 -1px!important;padding:20px 24px 0!important;border:0!important;border-radius:28px!important;overflow:hidden!important;background:linear-gradient(180deg,#7FD5F2 0%,#A9E6F7 47%,#DDF5F3 100%)!important;box-shadow:none!important}
+.cat-hero:before{content:"";position:absolute;inset:auto -10% -70px;height:190px;background:radial-gradient(ellipse at center,#93D88E 0%,#B8E5A8 46%,transparent 70%);opacity:.9}
+.cat-hero:after{content:"";position:absolute;right:26%;top:36px;color:#FFD36B;font-size:34px}
+.cat-hero-copy{width:50%!important;position:relative;z-index:4;padding-top:12px}
+.cat-badge{display:none!important}
+.cat-hero h2{font-size:0!important;margin:0!important}
+.cat-hero h2:after{content:"Я проверю\A твои знания\A и помогу узнать\A много нового!";white-space:pre;font-size:22px;line-height:1.24;font-weight:800;color:#123266;background:#fff;padding:22px 26px 26px;border-radius:42px 42px 42px 12px;display:block;box-shadow:0 12px 28px rgba(55,98,120,.10)}
+.cat-hero p,.cat-hero-action{display:none!important}
+.cat-hero-mascot{position:absolute!important;right:3%!important;bottom:-3px!important;width:52%!important;max-width:420px!important;z-index:3}
+.cat-hero-mascot .doctor-mascot{width:100%;height:auto;display:block}
+.home-stat-card{position:relative;z-index:5;margin:-30px 4px 22px!important;padding:13px 8px!important;border-radius:24px!important;box-shadow:0 12px 30px rgba(61,108,121,.13)!important;border:1px solid #E3EDF0!important}
+.home-stat-card button{flex-direction:column!important;gap:1px!important;padding:5px!important}
+.home-stat-card button span{font-size:29px!important}
+.home-stat-card button b{font-size:25px!important;line-height:1!important;color:#102D5F!important}
+.home-stat-card button small{font-size:12px!important;color:#526F78!important}
+.stat-divider{height:56px!important;background:#E4ECEF!important}
+.home-section-title{position:relative;z-index:2;margin:0 5px 11px!important;align-items:end!important}
+.home-section-title>div p{display:none!important}
+.home-section-title h2{font-size:27px!important;color:#102D5F!important;margin:0!important}
+.home-section-title button{font-size:15px!important;color:#1476D4!important;font-weight:900!important}
+.home-world-grid{position:relative;z-index:2;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+.home-world-card{min-height:132px!important;padding:15px!important;border-radius:23px!important;background:#fff!important;border:1px solid #DCEEEB!important;box-shadow:0 10px 24px rgba(55,98,94,.10)!important;grid-template-columns:58px 1fr auto!important}
+.home-world-card .world-icon{width:58px!important;height:58px!important;border-radius:18px!important;font-size:34px!important;background:#EEF7FF!important}
+.home-world-card .world-info b{font-size:17px!important;line-height:1.08!important;color:#17385F!important}
+.home-world-card .world-info small{font-size:13px!important;color:#607B80!important;margin-top:5px!important}
+.home-world-card .world-info i{height:8px!important;background:#EEF3F1!important;margin-top:12px!important;border-radius:99px!important;overflow:hidden}
+.home-world-card .world-info i em{background:linear-gradient(90deg,#FFC43D,#FF8D20)!important;border-radius:99px!important}
+.home-world-card>strong{font-size:28px!important;color:#6D928F!important}
+.home-learning-action{display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px!important;margin:13px 0 0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+.home-learning-action:before{content:"📊  Мой прогресс";display:flex;align-items:center;justify-content:center;min-height:58px;border-radius:20px;background:#fff;border:1px solid #DCEEEB;box-shadow:0 10px 24px rgba(55,98,94,.08);font-size:15px;font-weight:900;color:#17385F}
+.home-learning-action:after{content:"🏅  Достижения  →";display:flex;align-items:center;justify-content:center;min-height:58px;border-radius:20px;background:#fff;border:1px solid #DCEEEB;box-shadow:0 10px 24px rgba(55,98,94,.08);font-size:15px;font-weight:900;color:#17385F}
+.home-learning-action>*{display:none!important}
+.home-tip{position:relative;z-index:2;display:flex!important;align-items:center!important;gap:16px!important;margin:13px 0 0!important;padding:17px 20px!important;min-height:105px;border-radius:24px!important;background:linear-gradient(100deg,#73D5F1,#BDEEF8)!important;border:0!important;overflow:hidden!important}
+.home-tip:after{content:"💡";font-size:58px;order:-1}
+.home-tip>span{display:none}
+.home-tip>div{position:relative;z-index:2}
+.home-tip b{display:block;font-size:20px!important;color:#123266!important}
+.home-tip small{display:block;font-size:13px!important;line-height:1.35!important;color:#2B5267!important;margin-top:4px}
+.home-gifts{display:none!important}
+.bottom-nav{z-index:20!important;max-width:980px!important;border-radius:26px 26px 0 0!important;padding:10px 10px max(10px,env(safe-area-inset-bottom))!important;background:rgba(255,255,255,.96)!important;box-shadow:0 -8px 30px rgba(56,94,104,.10)!important}
+.bottom-nav button{min-height:56px!important;border-radius:18px!important}
+.bottom-nav button span{font-size:25px!important}
+.bottom-nav button small{font-size:12px!important;font-weight:900!important}
+.bottom-nav button.active{background:#E7F1FF!important;color:#2474D4!important;box-shadow:inset 0 0 0 2px #CBE4FF!important}
+@media(max-width:700px){
+  .app{max-width:100%;padding-bottom:84px!important}
+  .home-approved{padding:12px 14px 14px}
+  .home-greeting h1{font-size:29px!important}
+  .home-greeting>div>p:not(.eyebrow){font-size:14px!important}
+  .home-profile-mini{width:46px;height:46px}
+  .cat-hero{min-height:280px!important;padding:14px 12px 0!important;border-radius:24px!important}
+  .cat-hero-copy{width:53%!important;padding-top:10px}
+  .cat-hero h2:after{font-size:15px;padding:17px 17px 19px;border-radius:31px 31px 31px 10px}
+  .cat-hero-mascot{width:55%!important}
+  .home-stat-card{margin:-22px 1px 17px!important;border-radius:20px!important}
+  .home-stat-card button span{font-size:22px!important}
+  .home-stat-card button b{font-size:20px!important}
+  .home-stat-card button small{font-size:10px!important}
+  .home-section-title h2{font-size:22px!important}
+  .home-section-title button{font-size:12px!important}
+  .home-world-grid{gap:9px!important}
+  .home-world-card{min-height:104px!important;padding:10px!important;grid-template-columns:44px 1fr auto!important;border-radius:18px!important}
+  .home-world-card .world-icon{width:44px!important;height:44px!important;font-size:25px!important;border-radius:14px!important}
+  .home-world-card .world-info b{font-size:13px!important}
+  .home-world-card .world-info small{font-size:9px!important}
+  .home-world-card .world-info i{height:6px!important;margin-top:8px!important}
+  .home-world-card>strong{font-size:20px!important}
+  .home-learning-action:before,.home-learning-action:after{font-size:11px!important;min-height:50px!important}
+  .home-tip{min-height:86px!important;padding:11px 13px!important}
+  .home-tip:after{font-size:42px}
+  .home-tip b{font-size:14px!important}
+  .home-tip small{font-size:10px!important}
+}
