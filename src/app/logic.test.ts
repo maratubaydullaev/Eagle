@@ -60,12 +60,12 @@ describe('POCHEMUЧКА MVP content', () => {
     expect(second.xp).toBe(first.xp)
     expect(second.progress[lesson.id].attempts).toBe(2)
   })
-  it('repetition uses 1/3/7 day intervals', () => {
+  it('repetition is next day after any mistake and later after a perfect lesson', () => {
     const base = new Date('2026-01-01T00:00:00Z')
-    for (const [mastery, days] of [[0.2,1],[0.6,3],[0.9,7]] as const) {
-      const next = repetition.nextDate({ mastery, completedAt: base.toISOString() } as any)
-      expect(Math.round((next.getTime() - base.getTime()) / 86400000)).toBe(days)
-    }
+    const wrong = repetition.nextDate({ mastery: 0.5, completedAt: base.toISOString() } as any)
+    const perfect = repetition.nextDate({ mastery: 1, completedAt: base.toISOString() } as any)
+    expect(Math.round((wrong.getTime() - base.getTime()) / 86400000)).toBe(1)
+    expect(Math.round((perfect.getTime() - base.getTime()) / 86400000)).toBe(7)
   })
   it('unlocking starts with first lesson', () => {
     const state: any = { profile: { age: 7 }, progress: {}, activityMastery: {}, xp: 0, stars: 0 }
