@@ -1,4 +1,4 @@
-import type { AppState, ChildProfile, Lesson, LessonProgress } from '../app/types'
+import type { AppState, ChildProfile, Grade, Lesson, LessonProgress } from '../app/types'
 import { lessons } from '../content/content'
 
 const KEY = 'pochemuchka_state_v1'
@@ -47,6 +47,8 @@ export const storage = {
   }
 }
 
+export const gradeForAge = (age: number): Grade => age <= 6 ? 1 : age <= 8 ? 2 : 3
+
 export const learning = {
   status(state: AppState, lesson: Lesson) {
     const progress = state.progress[lesson.id]
@@ -56,8 +58,8 @@ export const learning = {
       return 'available'
     }
     if (progress) return progress.status
-    const age = state.profile?.age || 7
-    const available = lessons.filter(x => x.worldId === lesson.worldId && x.ageMin <= age && x.ageMax >= age).sort((a,b) => a.orderIndex - b.orderIndex)
+    const grade = state.profile?.grade || gradeForAge(state.profile?.age || 7)
+    const available = lessons.filter(x => x.worldId === lesson.worldId && x.grade === grade).sort((a,b) => a.orderIndex - b.orderIndex)
     const index = available.findIndex(x => x.id === lesson.id)
     return index === 0 || state.progress[available[index - 1]?.id]?.status === 'completed' ? 'available' : 'locked'
   },
@@ -151,6 +153,6 @@ export const repetition = {
   }
 }
 export const ageAdaptation = {
-  group: (age: number) => age <= 7 ? '6-7' : age <= 9 ? '8-9' : '10',
+  group: (age: number) => `grade-${gradeForAge(age)}`,
   timerSeconds: (age: number) => age <= 7 ? 20 : age <= 9 ? 17 : 15
 }
