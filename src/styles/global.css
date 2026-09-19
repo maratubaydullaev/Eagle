@@ -25,3 +25,167 @@ section>.screen.center h1+ p{max-width:300px;margin-left:auto;margin-right:auto}
 .card>h1{line-height:1.1}.card>h2{line-height:1.2}.stats-grid>div{background:#FBFDFF;border-color:#DCEEF7;box-shadow:0 8px 18px -20px rgba(33,74,120,.5)}.stats-grid b{color:#214A78;font-size:20px;margin-top:3px}.stats-grid small{font-size:11px}.card h1{font-size:25px}.card p{line-height:1.45}
 .bottom-nav button{min-height:49px}.bottom-nav button.active{box-shadow:inset 0 0 0 1px #CFE6FA}.bottom-nav button.active span{transform:scale(1.05)}
 @media(max-width:380px){.home-top h1{font-size:22px}.hero-card{min-height:175px;padding:18px 15px}.hero-card h2{font-size:20px}.hero-copy{width:72%}.hero-mascot{width:39%}.world-card{min-height:86px}.achievement-grid{grid-template-columns:1fr}.result-score{flex-direction:column}.result-score div{min-width:0}}
+
+
+/* POCHEMUCHKI Design Pass 4 — cohesive child-app experience */
+:root{
+  --ui-blue:#4C9DFF;
+  --ui-blue-2:#78B7FF;
+  --ui-mint:#42C38F;
+  --ui-coral:#FF8B63;
+  --ui-yellow:#FFC95C;
+  --ui-purple:#8A78E8;
+  --ui-ink:#214A78;
+  --ui-muted:#6A8783;
+  --ui-border:#DCEEF7;
+  --ui-card:#FFFFFF;
+  --ui-soft:#F5FAFF;
+  --ui-soft-mint:#F1FCF7;
+}
+html{background:#EAF7F3}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 12% 4%,rgba(255,255,255,.95) 0 10%,transparent 27%),
+    radial-gradient(circle at 90% 14%,rgba(221,241,255,.9) 0 8%,transparent 25%),
+    linear-gradient(180deg,#F4FCFA 0%,#EAF7F3 100%);
+}
+.app{position:relative;isolation:isolate}
+.app:before,.app:after{
+  content:"";position:fixed;z-index:-1;pointer-events:none;border-radius:50%;filter:blur(2px);opacity:.55
+}
+.app:before{width:150px;height:150px;left:-95px;top:170px;background:#DDF1FF}
+.app:after{width:130px;height:130px;right:-90px;top:520px;background:#FFF0D5}
+.top{position:relative;z-index:5}
+.brand{border-radius:18px}
+.brand:focus-visible,.round-action:focus-visible,.bottom-nav button:focus-visible,.world-card:focus-visible,.lesson-row:focus-visible,.primary:focus-visible{outline:3px solid rgba(76,157,255,.28);outline-offset:2px}
+.home{padding-bottom:8px}
+.home-top{position:relative}
+.home-top:after{
+  content:"";position:absolute;right:70px;bottom:12px;width:42px;height:10px;border-radius:99px;background:#DDF1FF;transform:rotate(-8deg);opacity:.7
+}
+.hero-card:after{
+  content:"✦";position:absolute;right:42%;top:17px;font-size:17px;color:rgba(255,255,255,.85);transform:rotate(15deg)
+}
+.stats-strip>div{position:relative;overflow:hidden}
+.stats-strip>div:after{
+  content:"";position:absolute;width:32px;height:32px;border-radius:50%;right:-15px;top:-15px;background:#EEF8FF
+}
+.stats-strip>div:nth-child(2):after{background:#FFF5D9}
+.stats-strip>div:nth-child(3):after{background:#E9FAF3}
+.world-card{position:relative;overflow:hidden}
+.world-card:after{
+  content:"";position:absolute;right:-22px;bottom:-24px;width:62px;height:62px;border-radius:50%;background:#F3F9FF
+}
+.world-card:nth-child(2n):after{background:#F3FCF8}
+.world-icon{position:relative;z-index:1}
+.world-info{position:relative;z-index:1}
+.motivation-card{box-shadow:0 10px 26px -22px rgba(124,109,69,.5)}
+.my-gifts{background:linear-gradient(135deg,#fff,#FFFCF2);border-color:#F4E3B3}
+.my-gifts-list span{border:1px solid #F4E3B3}
+
+.back{
+  display:inline-flex;align-items:center;gap:5px;font-weight:900;font-size:13px;margin-bottom:2px
+}
+.world-head{position:relative;overflow:hidden}
+.world-head:after{
+  content:"";position:absolute;width:110px;height:110px;border-radius:50%;right:-38px;top:-40px;background:rgba(255,255,255,.55)
+}
+.world-head>span,.world-head>div{position:relative;z-index:1}
+.world-head+ h2{margin-top:18px}
+.lesson-row{position:relative;overflow:hidden}
+.lesson-row:after{
+  content:"";position:absolute;right:-26px;bottom:-30px;width:70px;height:70px;border-radius:50%;background:#F6FBFF
+}
+.lesson-row>span,.lesson-row>div,.lesson-row>strong{position:relative;z-index:1}
+.lesson-row.in_progress>span{background:#E4F2FF;color:#3B8FE8}
+.lesson-row.completed>span{background:#DDF7EB}
+.lesson-row.locked>span{background:#EEF1F4;filter:grayscale(1)}
+
+.lesson-head{position:relative;overflow:hidden}
+.lesson-head:after{
+  content:"?";position:absolute;right:18px;top:18px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(255,255,255,.7);color:#4C9DFF;font-weight:1000;font-size:20px;opacity:.65
+}
+.lesson-head>*{position:relative;z-index:1}
+.activity-card{box-shadow:0 16px 32px -25px rgba(33,74,120,.38)}
+.activity-card:before{
+  content:"";display:block;width:44px;height:5px;border-radius:99px;background:#DDF1FF;margin:0 auto 16px
+}
+.answers button{transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,background .16s ease}
+.answers button:not(:disabled):hover{transform:translateY(-1px);box-shadow:0 9px 18px -16px rgba(33,74,120,.7)}
+.answers button.correct{box-shadow:0 8px 20px -15px rgba(66,195,143,.8)}
+.activity-guide{box-shadow:0 10px 24px -22px rgba(76,157,255,.55)}
+
+.lesson-result{position:relative;overflow:hidden}
+.lesson-result:before,.lesson-result:after{
+  content:"✦";position:absolute;color:#FFC95C;font-size:24px;opacity:.7
+}
+.lesson-result:before{left:18px;top:22px;transform:rotate(-12deg)}
+.lesson-result:after{right:20px;top:48px;transform:rotate(18deg)}
+.result-score div{box-shadow:0 8px 18px -20px rgba(33,74,120,.65)}
+.lesson-result .primary{max-width:330px;margin-left:auto;margin-right:auto}
+
+.progress-cards .stat-card{position:relative;overflow:hidden}
+.progress-cards .stat-card:after{
+  content:"";position:absolute;width:48px;height:48px;border-radius:50%;right:-22px;bottom:-24px;background:#EEF7FF
+}
+.progress-cards .stat-card:nth-child(2):after{background:#FFF5D9}
+.progress-cards .stat-card:nth-child(3):after{background:#E9FAF3}
+.progress-content{background:linear-gradient(180deg,#fff 0%,#FCFEFF 100%)}
+.progress-content>h2:after{
+  content:"";display:block;width:38px;height:4px;border-radius:99px;background:#4C9DFF;margin-top:8px
+}
+.lesson-progress-item{background:#FBFDFF;transition:transform .16s ease}
+.lesson-progress-item:hover{transform:translateY(-1px)}
+
+.gift-card{position:relative;overflow:hidden}
+.gift-card:after{
+  content:"✦";position:absolute;right:10px;top:8px;color:#FFC95C;font-size:16px
+}
+.gift-card button:not(:disabled):hover{box-shadow:0 9px 18px -12px rgba(59,143,232,.75);transform:translateY(-1px)}
+
+.achievements-head{position:relative;overflow:hidden}
+.achievements-head:after{
+  content:"✦";position:absolute;right:22px;top:20px;color:#FFC95C;font-size:30px;transform:rotate(14deg)
+}
+.achievement-grid{padding-bottom:4px}
+.achievement-card{transition:transform .16s ease,box-shadow .16s ease}
+.achievement-card.unlocked:hover{transform:translateY(-2px);box-shadow:0 12px 24px -20px rgba(66,195,143,.8)}
+
+.screen.center{
+  min-height:calc(100vh - 110px);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  border:0;
+  background:linear-gradient(180deg,#fff 0%,#F5FCFF 100%);
+}
+.screen.center .hero{
+  position:relative;
+  overflow:hidden;
+  border-radius:28px;
+  padding:18px 12px 12px;
+  background:linear-gradient(135deg,#E2F7EF,#E3F0FF);
+}
+.screen.center .hero:after{
+  content:"✦";position:absolute;right:24px;top:18px;color:#FFC95C;font-size:22px
+}
+.screen.center .hero .mascot{position:relative;z-index:1}
+.screen.center .hero h1,.screen.center .hero p{position:relative;z-index:1}
+.screen.center .primary{box-shadow:0 12px 24px -16px rgba(255,139,99,.8)}
+.chip:hover:not(.active){border-color:#9DCEF7;background:#EDF7FF}
+
+.parent-card,.parent-stat{background:#FBFDFF}
+.bottom-nav{bottom:max(10px,env(safe-area-inset-bottom))}
+.bottom-nav button{position:relative}
+.bottom-nav button.active:before{
+  content:"";position:absolute;top:3px;left:50%;width:5px;height:5px;border-radius:50%;background:#4C9DFF;transform:translateX(-50%)
+}
+@media(max-width:380px){
+  .app{padding-left:10px;padding-right:10px}
+  .bottom-nav{width:calc(100% - 16px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .lesson-progress-item:hover,.gift-card button:not(:disabled):hover,.achievement-card.unlocked:hover,.answers button:not(:disabled):hover{transform:none}
+}
