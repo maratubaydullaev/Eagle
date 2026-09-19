@@ -189,3 +189,30 @@ body{
 @media(prefers-reduced-motion:reduce){
   .lesson-progress-item:hover,.gift-card button:not(:disabled):hover,.achievement-card.unlocked:hover,.answers button:not(:disabled):hover{transform:none}
 }
+
+/* POCHEMUCHKI interaction pass — feedback, timer and mascot emotions */
+.activity-meta{display:flex;justify-content:flex-end;margin-bottom:10px}
+.activity-meta span{display:inline-flex;align-items:center;gap:5px;padding:7px 10px;border-radius:999px;background:#F1F8FF;border:1px solid #DCEEF7;color:#3B82C8;font-size:12px;font-weight:900;transition:background .2s,border-color .2s,color .2s}
+.activity-meta span[aria-label="critical"]{background:#FFF0D9;border-color:#F4D59A;color:#A86B17}
+.answers button{will-change:transform}
+.answers button.correct{background:#E9FAF3!important;border-color:#42C38F!important;color:#15513F!important}
+.answers button.wrong{background:#FFEDF1!important;border-color:#FF7A8F!important;color:#8B1730!important;animation:answer-shake .32s ease}
+.answers button:disabled{cursor:default}
+.feedback.good{animation:feedback-pop .32s ease both}
+.feedback.bad{animation:feedback-shake .3s ease both}
+.next-step{min-height:52px;font-size:15px;box-shadow:0 10px 22px -14px rgba(59,143,232,.7)}
+.next-step:hover:not(:disabled){transform:translateY(-1px)}
+.activity-guide .mascot-happy{animation:mascot-bounce .7s ease-out both}
+.activity-guide .mascot-sad{animation:mascot-sympathy .5s ease-out both}
+.activity-guide .mascot-thinking{animation:mascot-think 1.4s ease-in-out infinite}
+.hero-mascot .mascot-normal{animation:mascot-float 3.2s ease-in-out infinite}
+@keyframes answer-shake{0%,100%{transform:translateX(0)}30%{transform:translateX(-5px)}70%{transform:translateX(5px)}}
+@keyframes feedback-pop{0%{opacity:0;transform:translateY(5px) scale(.98)}100%{opacity:1;transform:none}}
+@keyframes feedback-shake{0%{opacity:0;transform:translateX(-4px)}100%{opacity:1;transform:none}}
+@keyframes mascot-bounce{0%{transform:translateY(8px) scale(.94)}55%{transform:translateY(-5px) scale(1.02)}100%{transform:none}}
+@keyframes mascot-sympathy{0%{transform:rotate(0)}35%{transform:rotate(-4deg)}70%{transform:rotate(4deg)}100%{transform:none}}
+@keyframes mascot-think{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-3px) rotate(1deg)}}
+@keyframes mascot-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@media(prefers-reduced-motion:reduce){
+  .activity-meta span,.answers button,.feedback,.next-step{transition:none!important;animation:none!important}
+}
