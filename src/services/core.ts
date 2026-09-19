@@ -69,7 +69,13 @@ export const learning = {
     const progress: LessonProgress = old
       ? { ...old, status: 'in_progress', startedAt: old.startedAt || new Date().toISOString() }
       : { id: crypto.randomUUID(), profileId: state.profile!.id, lessonId, status: 'in_progress', score: 0, mastery: 0, attempts: 0, startedAt: new Date().toISOString(), xp: 0, stars: 0 }
-    return storage.progress(progress)
+    const next: AppState = {
+      ...state,
+      progress: { ...state.progress, [lessonId]: progress },
+      lastLessonId: lessonId
+    }
+    storage.save(next)
+    return next
   },
   complete(state: AppState, lesson: Lesson, score: number) {
     const total = Math.max(1, lesson.steps.length)
@@ -91,9 +97,11 @@ export const learning = {
       xp: rewardAlreadyGranted ? old!.xp : 20 + score * 10,
       stars: rewardAlreadyGranted ? Math.max(old!.stars, stars) : stars
     }
-    const next = storage.progress(progress)
-    if (state.profile) next.profile = state.profile
-    next.activityMastery = { ...state.activityMastery, ...next.activityMastery }
+    const next: AppState = {
+      ...state,
+      progress: { ...state.progress, [lesson.id]: progress },
+      activityMastery: { ...state.activityMastery }
+    }
     storage.save(next)
     return next
   }
