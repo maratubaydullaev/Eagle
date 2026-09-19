@@ -246,7 +246,7 @@ serve(async (req) => {
 
       const { data: activity, error: ae } = await admin
         .from('activities')
-        .select('id,type,content,lesson_id,lessons!inner(id,is_active,age_min,age_max)')
+        .select('id,type,content,lesson_id,lessons!inner(id,topic_id,is_active,age_min,age_max)')
         .eq('id', activityId)
         .maybeSingle()
       if (ae) throw ae
