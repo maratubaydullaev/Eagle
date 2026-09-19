@@ -13,7 +13,7 @@ export function QuizActivity({ activity, onResult, onAttempt, timerSeconds = 15 
   useEffect(() => {
     if (remaining !== 0 || answer) return
     setAnswer('__timeout__')
-    void onAttempt(false, null, Date.now() - startedAt)
+    void Promise.resolve(onAttempt(false, null, Date.now() - startedAt)).catch(() => {})
     audio.wrong(); telegram.haptic('error')
     window.setTimeout(() => onResult(false), 550)
   }, [remaining, answer, onAttempt, onResult, startedAt])
@@ -21,7 +21,7 @@ export function QuizActivity({ activity, onResult, onAttempt, timerSeconds = 15 
     if (answer) return
     setAnswer(id)
     const ok = id === d.correctAnswerId
-    await onAttempt(ok, id, Date.now() - startedAt)
+    void Promise.resolve(onAttempt(ok, id, Date.now() - startedAt)).catch(() => {})
     ok ? audio.correct() : audio.wrong()
     telegram.haptic(ok ? 'success' : 'error')
     window.setTimeout(() => onResult(ok), 550)
@@ -42,7 +42,7 @@ export function DragDropActivity({ activity, onResult, onAttempt }: { activity: 
   const [startedAt] = useState(() => Date.now())
   async function move(item: string, target: string) {
     const index = d.targets.indexOf(target), ok = d.correct[index] === item
-    await onAttempt(ok, { item, target }, Date.now() - startedAt)
+    void Promise.resolve(onAttempt(ok, { item, target }, Date.now() - startedAt)).catch(() => {})
     if (ok) {
       const next = [...placed, item]; setPlaced(next); setItems(xs => xs.filter(x => x !== item))
       if (next.length === d.targets.length) window.setTimeout(() => onResult(true), 250)
@@ -66,7 +66,7 @@ export function MatchingActivity({ activity, onResult, onAttempt }: { activity: 
     if (done.includes(value)) return
     if (!selected) { setSelected(value); return }
     const first = selected, ok = pairs.get(first) === value || pairs.get(value) === first
-    await onAttempt(ok, { first, second: value }, Date.now() - startedAt)
+    void Promise.resolve(onAttempt(ok, { first, second: value }, Date.now() - startedAt)).catch(() => {})
     if (ok) {
       const next = [...done, first, value]; setDone(next); setSelected(null)
       if (next.length === d.pairs.length * 2) window.setTimeout(() => onResult(true), 250)
