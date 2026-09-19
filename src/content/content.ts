@@ -17,9 +17,13 @@ export const topics: Topic[] = [
 ]
 
 type Row = [string, string, string, string[], string]
+const answerShift = (id: string): number => [...id].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 3
 const quiz = (id: string, question: string, correct: string, distractors: string[], explanation: string): Activity => {
-  const answers = [correct, ...distractors].map((text, i) => ({ id: String(i), text }))
-  return { id, type: 'quiz', title: 'Проверь себя', instructions: 'Выбери правильный ответ', data: { question, answers, correctAnswerId: '0', explanation }, reward: { xp: 10 } }
+  const baseAnswers = [correct, ...distractors]
+  const shift = answerShift(id)
+  const answers = baseAnswers.map((_, index) => baseAnswers[(index + shift) % baseAnswers.length]).map((text, index) => ({ id: String(index), text }))
+  const correctAnswerId = String((baseAnswers.length - shift) % baseAnswers.length)
+  return { id, type: 'quiz', title: 'Проверь себя', instructions: 'Выбери правильный ответ', data: { question, answers, correctAnswerId, explanation }, reward: { xp: 10 } }
 }
 const rows = (prefix: string, list: Row[]): Activity[] => list.map(([id, question, answer, distractors, explanation]) => quiz(prefix + id, question, answer, distractors, explanation))
 
