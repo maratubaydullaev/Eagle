@@ -99,6 +99,7 @@ function tone(frequency: number, duration = .1) {
   if (!sound || typeof AudioContext === 'undefined') return
   try {
     audioContext ??= new AudioContext()
+    if (audioContext.state === 'suspended') void audioContext.resume().catch(() => {})
     const oscillator = audioContext.createOscillator(), gain = audioContext.createGain()
     oscillator.frequency.value = frequency; oscillator.connect(gain); gain.connect(audioContext.destination)
     gain.gain.setValueAtTime(.001, audioContext.currentTime)
@@ -111,6 +112,13 @@ function tone(frequency: number, duration = .1) {
   }
 }
 export const audio = {
+  unlock() {
+    if (!sound || typeof AudioContext === 'undefined') return
+    try {
+      audioContext ??= new AudioContext()
+      if (audioContext.state === 'suspended') void audioContext.resume().catch(() => {})
+    } catch { audioContext = null }
+  },
   correct() { tone(660); setTimeout(() => tone(880), 70) },
   wrong() { tone(220, .18) },
   win() { tone(523); setTimeout(() => tone(659), 100); setTimeout(() => tone(784, .2), 200) },
