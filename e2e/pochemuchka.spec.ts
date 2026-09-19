@@ -26,7 +26,7 @@ test.beforeEach(async ({ page }) => {
 test('mobile learning journey: home → world → lesson → activity → result', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /Привет, Тест/ })).toBeVisible()
   await page.locator('.world-card').first().click()
-  await expect(page.getByRole('heading', { name: 'Природа' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Природа', exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: /Начать →/ }).first().click()
   await expect(page.getByText('ПЕРЕД НАЧАЛОМ')).toBeVisible()
