@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Activity } from '../app/types'
-import { audio, telegram } from '../services/core'
+import { audio, telegram } from '../services/core'\nimport { Mascot } from '../components/Mascot'
 
 type Attempt = (ok: boolean, answer?: unknown, timeSpent?: number) => void | Promise<void>
 
@@ -39,7 +39,7 @@ export function QuizActivity({ activity, onResult, onAttempt, timerSeconds = 15 
     <div className="answers">{d.answers.map((x: any) => <button key={x.id} disabled={!!answer} className={answer ? (x.id === d.correctAnswerId ? 'correct' : x.id === answer ? 'wrong' : '') : 'answer'} onClick={() => pick(x.id)}>{x.text}</button>)}</div>
     {answer && <>
       <div className={answer === d.correctAnswerId ? 'feedback good' : 'feedback bad'} role="status">{answer === '__timeout__' ? 'Время вышло ⏱️' : answer === d.correctAnswerId ? 'Отлично! 🎉' : 'Почти! 💡 ' + d.explanation}</div>
-      <button className="primary next-step" type="button" onClick={() => onResult(answer === d.correctAnswerId)}>{'Следующий вопрос →'}</button>
+      <div className="activity-guide"> <Mascot mood={answer === d.correctAnswerId ? 'happy' : 'sad'}/><div><b>{answer === d.correctAnswerId ? 'Отлично!' : 'Почти получилось!'}</b><span>{answer === d.correctAnswerId ? 'Так держать. Переходим дальше.' : 'Разберём ошибку и попробуем снова.'}</span></div></div><button className="primary next-step" type="button" onClick={() => onResult(answer === d.correctAnswerId)}>{'Следующий вопрос →'}</button>
     </>}
   </div>
 }
@@ -109,7 +109,7 @@ export function DragDropActivity({ activity, onResult, onAttempt }: { activity: 
         </button>
       )}
     </div>
-    {wrong && !finished && <div className="feedback bad" role="status">Не подходит. Попробуй другую пару 💪</div>}
+    {wrong && !finished && <><div className="feedback bad" role="status">Не подходит. Попробуй другую пару 💪</div><div className="activity-guide"><Mascot mood="sad"/><div><b>Почти!</b><span>Ошибка — это подсказка. Попробуй ещё раз.</span></div></div></>}
     {finished && <>
       <div className="feedback good" role="status">Все пары найдены! 🎉</div>
       <button className="primary next-step" type="button" onClick={() => onResult(true)}>
@@ -179,7 +179,7 @@ export function MatchingActivity({ activity, onResult, onAttempt }: { activity: 
         )
       })}
     </div>
-    {wrong && !finished && <div className="feedback bad" role="status">Эта пара не подходит. Попробуй ещё раз 💪</div>}
+    {wrong && !finished && <><div className="feedback bad" role="status">Эта пара не подходит. Попробуй ещё раз 💪</div><div className="activity-guide"><Mascot mood="sad"/><div><b>Ничего страшного!</b><span>Подумай ещё раз и найди правильную пару.</span></div></div></>}
     {finished && <>
       <div className="feedback good" role="status">Все пары найдены! 🎉</div>
       <button className="primary next-step" type="button" onClick={() => onResult(true)}>
