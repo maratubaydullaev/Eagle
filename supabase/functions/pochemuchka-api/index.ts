@@ -280,8 +280,52 @@ serve(async (req) => {
         p_profile_id: profile.id,
         p_gift_id: giftId,
       })
-      if (error) throw error
 
+      // The first production deploy may race the one-time DB migration.
+      // Fall back to the legacy event path only while the RPC does not exist.
+      if (error?.code === '42883' || error?.message?.includes('purchase_gift_atomic')) {
+        const { data: purchases, error: purchaseReadError } = await admin
+          .from('analytics_events')
+          .select('payload,created_at')
+          .eq('profile_id', profile.id)
+          .eq('event_name', 'gift_purchased')
+          .order('created_at', { ascending: true })
+        if (purchaseReadError) throw purchaseReadError
+
+        const purchasedGifts = (purchases || [])
+          .map((row: any) => String(row.payload?.giftId || ''))
+          .filter(Boolean)
+        if (purchasedGifts.includes(giftId)) {
+          const { data: progressRows, error: starError } = await admin
+            .from('lesson_progress')
+            .select('stars')
+            .eq('profile_id', profile.id)
+          if (starError) throw starError
+          const earnedStars = (progressRows || []).reduce((n: number, row: any) => n + Number(row.stars || 0), 0)
+          const spentStars = purchasedGifts.reduce((n, id) => n + (giftCosts[id] || 0), 0)
+          return json({ ok: true, alreadyPurchased: true, stars: Math.max(0, earnedStars - spentStars), purchasedGifts })
+        }
+
+        const { data: progressRows, error: starError } = await admin
+          .from('lesson_progress')
+          .select('stars')
+          .eq('profile_id', profile.id)
+        if (starError) throw starError
+        const earnedStars = (progressRows || []).reduce((n: number, row: any) => n + Number(row.stars || 0), 0)
+        const spentStars = purchasedGifts.reduce((n, id) => n + (giftCosts[id] || 0), 0)
+        const stars = earnedStars - spentStars
+        if (stars < giftCosts[giftId]) return json({ error: 'not_enough_stars', stars: Math.max(0, stars) }, 400)
+
+        const { error: purchaseError } = await admin.from('analytics_events').insert({
+          profile_id: profile.id,
+          event_name: 'gift_purchased',
+          payload: { giftId, cost: giftCosts[giftId] },
+        })
+        if (purchaseError) throw purchaseError
+        return json({ ok: true, stars: stars - giftCosts[giftId], purchasedGifts: [...purchasedGifts, giftId] })
+      }
+
+      if (error) throw error
       if (data?.error) {
         const status = data.error === 'already_purchased' ? 200 : data.error === 'not_enough_stars' ? 400 : 400
         return json(data, status)
