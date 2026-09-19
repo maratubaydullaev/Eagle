@@ -148,7 +148,7 @@ serve(async (req) => {
         return json({ ok: true, telegramUser: user, profile: null, progress: [], activityAttempts: [] })
       }
 
-      const [{ data: progress, error: progressError }, { data: attempts, error: attemptsError }, { data: giftPurchases, error: giftError }] =
+      const [{ data: progress, error: progressError }, { data: attempts, error: attemptsError }] =
         await Promise.all([
           admin.from('lesson_progress').select('*').eq('profile_id', profile.id),
           admin
@@ -157,81 +157,42 @@ serve(async (req) => {
             .eq('profile_id', profile.id)
             .order('created_at', { ascending: true })
             .limit(1000),
-          admin
-            .from('analytics_events')
-            .select('payload,created_at')
-            .eq('profile_id', profile.id)
-            .eq('event_name', 'gift_purchased')
-            .order('created_at', { ascending: true })
-            .limit(100),
         ])
       if (progressError) throw progressError
       if (attemptsError) throw attemptsError
-      if (giftError) throw giftError
 
-      // Reconcile completed lessons from the authoritative activity_attempts table.
-      // This repairs older rows created before server-side scoring was enabled and
-      // keeps the star balance used by the gift shop consistent with real attempts.
-      const progressRows = progress || []
-      const activityByLesson = new Map<string, any[]>()
-      if (progressRows.length) {
-        const { data: allActivities, error: allActivitiesError } = await admin
-          .from('activities')
-          .select('id,lesson_id')
-          .in('lesson_id', progressRows.map((row: any) => row.lesson_id))
-        if (allActivitiesError) throw allActivitiesError
-
-        for (const activity of allActivities || []) {
-          const list = activityByLesson.get(activity.lesson_id) || []
-          list.push(activity)
-          activityByLesson.set(activity.lesson_id, list)
-        }
-      }
-
-      const attemptsByActivity = new Map<string, any[]>()
-      for (const attempt of attempts || []) {
-        const list = attemptsByActivity.get(attempt.activity_id) || []
-        list.push(attempt)
-        attemptsByActivity.set(attempt.activity_id, list)
-      }
-
-      for (const row of progressRows) {
-        if (row.status !== 'completed') continue
-        const activitiesForLesson = activityByLesson.get(row.lesson_id) || []
-        if (!activitiesForLesson.length) continue
-
-        const latest = new Map<string, boolean>()
-        for (const activity of activitiesForLesson) {
-          const history = attemptsByActivity.get(activity.id) || []
-          if (history.length) latest.set(activity.id, Boolean(history[history.length - 1].is_correct))
-        }
-        if (latest.size < activitiesForLesson.length) continue
-
-        const score = [...latest.values()].filter(Boolean).length
-        const accuracy = score / activitiesForLesson.length
-        const stars = accuracy >= 0.9 ? 3 : accuracy >= 0.6 ? 2 : accuracy >= 0.3 ? 1 : 0
-        const mastery = Number((((Number(row.mastery || 0) * 0.4) + accuracy * 0.6)).toFixed(3))
-        const repairedStars = Math.max(Number(row.stars || 0), stars)
-
-        if (Number(row.score || 0) !== score || Number(row.stars || 0) !== repairedStars) {
-          const { error: repairError } = await admin
-            .from('lesson_progress')
-            .update({ score, mastery, stars: repairedStars })
-            .eq('id', row.id)
-          if (repairError) throw repairError
-          row.score = score
-          row.mastery = mastery
-          row.stars = repairedStars
-        }
+      // Keep bootstrap compatible during the one-time database migration.
+      let giftPurchases: any[] = []
+      const { data: transactionalPurchases, error: transactionalPurchaseError } = await admin
+        .from('gift_purchases')
+        .select('gift_id,created_at')
+        .eq('profile_id', profile.id)
+        .order('created_at', { ascending: true })
+        .limit(100)
+      if (!transactionalPurchaseError) {
+        giftPurchases = transactionalPurchases || []
+      } else {
+        const { data: legacyPurchases, error: legacyPurchaseError } = await admin
+          .from('analytics_events')
+          .select('payload,created_at')
+          .eq('profile_id', profile.id)
+          .eq('event_name', 'gift_purchased')
+          .order('created_at', { ascending: true })
+          .limit(100)
+        if (legacyPurchaseError) throw legacyPurchaseError
+        giftPurchases = (legacyPurchases || []).map((row: any) => ({
+          gift_id: String(row.payload?.giftId || ''),
+          created_at: row.created_at,
+        })).filter((row: any) => row.gift_id)
       }
 
       return json({
         ok: true,
         telegramUser: user,
         profile,
-        progress: progressRows,
+        progress: progress || [],
         activityAttempts: attempts || [],
-        giftPurchases: (giftPurchases || []).map((row: any) => ({ gift_id: String(row.payload?.giftId || '') })).filter((row: any) => row.gift_id),
+        giftPurchases: (giftPurchases || []).map((row: any) => ({ gift_id: String(row.gift_id || '') })).filter((row: any) => row.gift_id),
       })
     }
 
@@ -313,45 +274,64 @@ serve(async (req) => {
     if (body.action === 'purchase_gift') {
       const giftId = String(body.payload?.giftId || '')
       const giftCosts: Record<string, number> = { sticker: 5, avatar: 10, treasure: 15 }
-      const cost = giftCosts[giftId]
-      if (!cost) return json({ error: 'unknown gift' }, 400)
+      if (!giftCosts[giftId]) return json({ error: 'unknown gift' }, 400)
 
-      const { data: purchases, error: purchaseReadError } = await admin
-        .from('analytics_events')
-        .select('payload,created_at')
-        .eq('profile_id', profile.id)
-        .eq('event_name', 'gift_purchased')
-        .order('created_at', { ascending: true })
-      if (purchaseReadError) throw purchaseReadError
+      const { data, error } = await admin.rpc('purchase_gift_atomic', {
+        p_profile_id: profile.id,
+        p_gift_id: giftId,
+      })
 
-      const purchasedGifts = (purchases || [])
-        .map((row: any) => String(row.payload?.giftId || ''))
-        .filter(Boolean)
-      if (purchasedGifts.includes(giftId)) {
-        const earned = await admin.from('lesson_progress').select('stars').eq('profile_id', profile.id)
-        if (earned.error) throw earned.error
-        const stars = Math.max(0, (earned.data || []).reduce((n: number, row: any) => n + Number(row.stars || 0), 0) - purchasedGifts.reduce((n, id) => n + (giftCosts[id] || 0), 0))
-        return json({ ok: true, alreadyPurchased: true, stars, purchasedGifts })
+      // The first production deploy may race the one-time DB migration.
+      // Fall back to the legacy event path only while the RPC does not exist.
+      if (error?.code === '42883' || error?.message?.includes('purchase_gift_atomic')) {
+        const { data: purchases, error: purchaseReadError } = await admin
+          .from('analytics_events')
+          .select('payload,created_at')
+          .eq('profile_id', profile.id)
+          .eq('event_name', 'gift_purchased')
+          .order('created_at', { ascending: true })
+        if (purchaseReadError) throw purchaseReadError
+
+        const purchasedGifts = (purchases || [])
+          .map((row: any) => String(row.payload?.giftId || ''))
+          .filter(Boolean)
+        if (purchasedGifts.includes(giftId)) {
+          const { data: progressRows, error: starError } = await admin
+            .from('lesson_progress')
+            .select('stars')
+            .eq('profile_id', profile.id)
+          if (starError) throw starError
+          const earnedStars = (progressRows || []).reduce((n: number, row: any) => n + Number(row.stars || 0), 0)
+          const spentStars = purchasedGifts.reduce((n, id) => n + (giftCosts[id] || 0), 0)
+          return json({ ok: true, alreadyPurchased: true, stars: Math.max(0, earnedStars - spentStars), purchasedGifts })
+        }
+
+        const { data: progressRows, error: starError } = await admin
+          .from('lesson_progress')
+          .select('stars')
+          .eq('profile_id', profile.id)
+        if (starError) throw starError
+        const earnedStars = (progressRows || []).reduce((n: number, row: any) => n + Number(row.stars || 0), 0)
+        const spentStars = purchasedGifts.reduce((n, id) => n + (giftCosts[id] || 0), 0)
+        const stars = earnedStars - spentStars
+        if (stars < giftCosts[giftId]) return json({ error: 'not_enough_stars', stars: Math.max(0, stars) }, 400)
+
+        const { error: purchaseError } = await admin.from('analytics_events').insert({
+          profile_id: profile.id,
+          event_name: 'gift_purchased',
+          payload: { giftId, cost: giftCosts[giftId] },
+        })
+        if (purchaseError) throw purchaseError
+        return json({ ok: true, stars: stars - giftCosts[giftId], purchasedGifts: [...purchasedGifts, giftId] })
       }
 
-      const { data: progressRows, error: starError } = await admin
-        .from('lesson_progress')
-        .select('stars')
-        .eq('profile_id', profile.id)
-      if (starError) throw starError
-      const earnedStars = (progressRows || []).reduce((n: number, row: any) => n + Number(row.stars || 0), 0)
-      const spentStars = purchasedGifts.reduce((n, id) => n + (giftCosts[id] || 0), 0)
-      const stars = earnedStars - spentStars
-      if (stars < cost) return json({ error: 'not enough stars', stars: Math.max(0, stars) }, 400)
+      if (error) throw error
+      if (data?.error) {
+        const status = data.error === 'already_purchased' ? 200 : data.error === 'not_enough_stars' ? 400 : 400
+        return json(data, status)
+      }
 
-      const { error: purchaseError } = await admin.from('analytics_events').insert({
-        profile_id: profile.id,
-        event_name: 'gift_purchased',
-        payload: { giftId, cost },
-      })
-      if (purchaseError) throw purchaseError
-
-      return json({ ok: true, stars: stars - cost, purchasedGifts: [...purchasedGifts, giftId] })
+      return json(data)
     }
 
     if (body.action === 'leaderboard') {
@@ -377,7 +357,7 @@ serve(async (req) => {
       const { data: lessonCatalog, error: lessonError } = await admin
         .from('lessons')
         .select('id,title')
-        .eq('status', 'published')
+        .eq('is_active', true)
       if (lessonError) throw lessonError
 
       const leaderboard = (profiles || [])
@@ -433,6 +413,32 @@ serve(async (req) => {
       if (lessonError) throw lessonError
       if (!lesson || !lesson.is_active || profile.age < lesson.age_min || profile.age > lesson.age_max) {
         return json({ error: 'lesson unavailable for this profile' }, 403)
+      }
+
+      // The client lock is UX only; the server also enforces lesson sequence.
+      const { data: sequence, error: sequenceError } = await admin
+        .from('lessons')
+        .select('id,order_index')
+        .eq('topic_id', lesson.topic_id)
+        .eq('is_active', true)
+        .lte('age_min', profile.age)
+        .gte('age_max', profile.age)
+        .order('order_index', { ascending: true })
+      if (sequenceError) throw sequenceError
+
+      const lessonIndex = (sequence || []).findIndex((item: any) => item.id === lessonId)
+      if (lessonIndex > 0) {
+        const previousLessonId = sequence![lessonIndex - 1].id
+        const { data: previousProgress, error: previousProgressError } = await admin
+          .from('lesson_progress')
+          .select('status')
+          .eq('profile_id', profile.id)
+          .eq('lesson_id', previousLessonId)
+          .maybeSingle()
+        if (previousProgressError) throw previousProgressError
+        if (previousProgress?.status !== 'completed') {
+          return json({ error: 'lesson locked' }, 403)
+        }
       }
 
       const { data: activities, error: activitiesError } = await admin
