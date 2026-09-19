@@ -58,8 +58,9 @@ export const learning = {
       return 'available'
     }
     if (progress) return progress.status
-    const grade = state.profile?.grade || gradeForAge(state.profile?.age || 7)
-    const available = lessons.filter(x => x.worldId === lesson.worldId && x.grade === grade).sort((a,b) => a.orderIndex - b.orderIndex)
+    const profileGrade = state.profile?.grade
+    const age = state.profile?.age || 7
+    const available = lessons.filter(x => x.worldId === lesson.worldId && (profileGrade ? x.grade === profileGrade : x.ageMin <= age && x.ageMax >= age)).sort((a,b) => a.orderIndex - b.orderIndex)
     const index = available.findIndex(x => x.id === lesson.id)
     return index === 0 || state.progress[available[index - 1]?.id]?.status === 'completed' ? 'available' : 'locked'
   },
