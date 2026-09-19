@@ -504,6 +504,7 @@ serve(async (req) => {
 
     return json({ error: 'unknown action' }, 400)
   } catch (error) {
+    console.error('pochemuchka-api request failed', error)
     return json({ error: error instanceof Error ? error.message : String(error) }, 400)
   }
 })
