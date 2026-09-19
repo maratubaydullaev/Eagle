@@ -257,6 +257,29 @@ serve(async (req) => {
         return json({ error: 'activity unavailable for this profile' }, 403)
       }
 
+      // Lesson locks are enforced server-side as well as in the client UI.
+      const { data: sequence, error: sequenceError } = await admin
+        .from('lessons')
+        .select('id,order_index')
+        .eq('topic_id', lesson.topic_id)
+        .eq('is_active', true)
+        .lte('age_min', profile.age)
+        .gte('age_max', profile.age)
+        .order('order_index', { ascending: true })
+      if (sequenceError) throw sequenceError
+      const lessonIndex = (sequence || []).findIndex((item: any) => item.id === lesson.id)
+      if (lessonIndex > 0) {
+        const previousLessonId = sequence![lessonIndex - 1].id
+        const { data: previousProgress, error: previousProgressError } = await admin
+          .from('lesson_progress')
+          .select('status')
+          .eq('profile_id', profile.id)
+          .eq('lesson_id', previousLessonId)
+          .maybeSingle()
+        if (previousProgressError) throw previousProgressError
+        if (previousProgress?.status !== 'completed') return json({ error: 'lesson locked' }, 403)
+      }
+
       const answer = body.payload?.answer ?? null
       const isCorrect = evaluateActivity(activity.type, activity.content, answer)
       const timeSpent = Math.max(0, Math.min(3600000, Math.floor(Number(body.payload?.timeSpent || 0))))
@@ -338,58 +361,6 @@ serve(async (req) => {
       }
 
       return json(data)
-    }
-
-    if (body.action === 'leaderboard') {
-      const { data: profiles, error: profilesError } = await admin
-        .from('profiles')
-        .select('id,name,avatar')
-      if (profilesError) throw profilesError
-
-      const { data: progressRows, error: progressError } = await admin
-        .from('lesson_progress')
-        .select('profile_id,xp,status,lesson_id')
-        .eq('status', 'completed')
-      if (progressError) throw progressError
-
-      const totals = new Map<string, { points: number; completed: Set<string> }>()
-      for (const row of progressRows || []) {
-        const current = totals.get(row.profile_id) || { points: 0, completed: new Set<string>() }
-        current.points += Number(row.xp || 0)
-        current.completed.add(row.lesson_id)
-        totals.set(row.profile_id, current)
-      }
-
-      const { data: lessonCatalog, error: lessonError } = await admin
-        .from('lessons')
-        .select('id,title')
-        .eq('is_active', true)
-      if (lessonError) throw lessonError
-
-      const leaderboard = (profiles || [])
-        .map((p: any) => {
-          const total = totals.get(p.id) || { points: 0, completed: new Set<string>() }
-          const lessons = (lessonCatalog || []).map((lesson: any) => ({
-            lessonId: lesson.id,
-            title: String(lesson.title || 'Урок'),
-            completed: total.completed.has(lesson.id),
-          }))
-          return {
-            profileId: p.id,
-            name: String(p.name || 'Ученик').slice(0, 40),
-            avatar: String(p.avatar || '🐱').slice(0, 8),
-            points: total.points,
-            completedLessons: lessons.filter((lesson) => lesson.completed).length,
-            totalLessons: lessons.length,
-            lessons,
-          }
-        })
-        .filter((entry) => entry.points > 0)
-        .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name))
-        .slice(0, 100)
-        .map((entry, index) => ({ rank: index + 1, ...entry, isCurrentUser: entry.profileId === profile.id }))
-
-      return json({ ok: true, leaderboard })
     }
 
     if (body.action === 'due_reviews') {
