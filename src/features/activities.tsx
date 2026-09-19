@@ -35,9 +35,9 @@ export function QuizActivity({ activity, onResult, onAttempt, timerSeconds = 15 
     try { telegram.haptic(ok ? 'success' : 'error') } catch {}
   }
   return <div className="activity" onPointerDown={() => audio.unlock()}>
-    <div className="activity-meta"><span>⏱ {remaining} сек.</span></div>
+    <div className="activity-meta"><span className={remaining <= 3 ? 'timer-critical' : ''} aria-label={remaining <= 3 ? 'critical' : undefined}>⏱ {remaining} сек.</span></div>
     <h2>{d.question}</h2>
-    <div className="answers">{d.answers.map((x: any) => <button key={x.id} disabled={!!answer} className={answer ? (x.id === d.correctAnswerId ? 'correct' : x.id === answer ? 'wrong' : '') : 'answer'} onClick={() => pick(x.id)}>{x.text}</button>)}</div>
+    <div className="answers">{d.answers.map((x: any) => <button key={x.id} disabled={!!answer} className={answer ? (x.id === d.correctAnswerId ? 'correct' : x.id === answer ? 'wrong' : '') : 'answer'} aria-pressed={answer === x.id} onClick={() => pick(x.id)}>{x.text}</button>)}</div>
     {answer && <>
       <div className={answer === d.correctAnswerId ? 'feedback good' : 'feedback bad'} role="status">{answer === '__timeout__' ? 'Время вышло ⏱️' : answer === d.correctAnswerId ? 'Отлично! 🎉' : 'Почти! 💡 ' + d.explanation}</div>
       <div className="activity-guide"> <Mascot mood={answer === d.correctAnswerId ? 'happy' : 'sad'}/><div><b>{answer === d.correctAnswerId ? 'Отлично!' : 'Почти получилось!'}</b><span>{answer === d.correctAnswerId ? 'Так держать. Переходим дальше.' : 'Разберём ошибку и попробуем снова.'}</span></div></div><button className="primary next-step" type="button" onClick={() => onResult(answer === d.correctAnswerId)}>{'Следующий вопрос →'}</button>
