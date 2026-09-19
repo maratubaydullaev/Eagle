@@ -33,7 +33,7 @@ export function QuizActivity({ activity, onResult, onAttempt, timerSeconds = 15 
     try { ok ? audio.correct() : audio.wrong() } catch {}
     try { telegram.haptic(ok ? 'success' : 'error') } catch {}
   }
-  return <div className="activity">
+  return <div className="activity" onPointerDown={() => audio.unlock()}>
     <div className="activity-meta"><span>⏱ {remaining} сек.</span></div>
     <h2>{d.question}</h2>
     <div className="answers">{d.answers.map((x: any) => <button key={x.id} disabled={!!answer} className={answer ? (x.id === d.correctAnswerId ? 'correct' : x.id === answer ? 'wrong' : '') : 'answer'} onClick={() => pick(x.id)}>{x.text}</button>)}</div>
@@ -79,7 +79,7 @@ export function DragDropActivity({ activity, onResult, onAttempt }: { activity: 
     if (Object.keys(next).length === d.targets.length) setFinished(true)
   }
 
-  return <div className="activity">
+  return <div className="activity" onPointerDown={() => audio.unlock()}>
     <h2>{activity.instructions}</h2>
     <div className="drag-items">
       {d.items.map((item: string) =>
@@ -161,7 +161,7 @@ export function MatchingActivity({ activity, onResult, onAttempt }: { activity: 
     reportAttempt(onAttempt, ok, { first, second: value }, Date.now() - startedAt)
   }
 
-  return <div className="activity">
+  return <div className="activity" onPointerDown={() => audio.unlock()}>
     <h2>{activity.instructions}</h2>
     <div className="match-grid">
       {d.pairs.map((pair: string[], index: number) => {
