@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { lessons, worlds } from '../content/content'
 import { learning, repetition, storage, ageAdaptation } from '../services/core'
 
@@ -44,6 +46,14 @@ describe('POCHEMUЧКА MVP content', () => {
       expect(activity).toBeDefined()
       expect(activity?.type).toBe('matching')
     }
+  })
+  it('database seed keeps matching activities aligned with frontend content', () => {
+    const seed = readFileSync(resolve(process.cwd(), 'supabase/seed.sql'), 'utf8')
+    expect(seed).toContain("('w2b','world-compass-001','matching'")
+    expect(seed).toContain("('a1b','animals-cats-001','matching'")
+    expect(seed).toContain("('a2b','animals-habitat-001','matching'")
+    expect(seed).not.toContain("('w2b','world-compass-001','drag_drop'")
+    expect(seed).not.toContain("('a2b','animals-habitat-001','drag_drop'")
   })
   it('compass matching uses the requested labels and instruction', () => {
     const activity = lessons.flatMap(l => l.steps).find(a => a.id === 'w2b')!
