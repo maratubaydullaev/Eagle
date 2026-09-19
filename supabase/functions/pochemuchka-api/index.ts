@@ -83,7 +83,7 @@ function secretKey() {
 }
 
 function reviewDate(mastery: number) {
-  const days = mastery < 0.4 ? 1 : mastery < 0.7 ? 3 : 7
+  const days = mastery < 1 ? 1 : 7
   const date = new Date()
   date.setDate(date.getDate() + days)
   return date.toISOString()
