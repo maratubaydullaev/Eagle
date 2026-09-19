@@ -148,7 +148,7 @@ serve(async (req) => {
         return json({ ok: true, telegramUser: user, profile: null, progress: [], activityAttempts: [] })
       }
 
-      const [{ data: progress, error: progressError }, { data: attempts, error: attemptsError }, { data: giftPurchases, error: giftError }] =
+      const [{ data: progress, error: progressError }, { data: attempts, error: attemptsError }] =
         await Promise.all([
           admin.from('lesson_progress').select('*').eq('profile_id', profile.id),
           admin
@@ -157,17 +157,34 @@ serve(async (req) => {
             .eq('profile_id', profile.id)
             .order('created_at', { ascending: true })
             .limit(1000),
-          admin
-            .from('gift_purchases')
-            .select('gift_id,created_at')
-            .eq('profile_id', profile.id)
-            .order('created_at', { ascending: true })
-            .limit(100),
         ])
       if (progressError) throw progressError
       if (attemptsError) throw attemptsError
-      if (giftError) throw giftError
 
+      // Keep bootstrap compatible during the one-time database migration.
+      let giftPurchases: any[] = []
+      const { data: transactionalPurchases, error: transactionalPurchaseError } = await admin
+        .from('gift_purchases')
+        .select('gift_id,created_at')
+        .eq('profile_id', profile.id)
+        .order('created_at', { ascending: true })
+        .limit(100)
+      if (!transactionalPurchaseError) {
+        giftPurchases = transactionalPurchases || []
+      } else {
+        const { data: legacyPurchases, error: legacyPurchaseError } = await admin
+          .from('analytics_events')
+          .select('payload,created_at')
+          .eq('profile_id', profile.id)
+          .eq('event_name', 'gift_purchased')
+          .order('created_at', { ascending: true })
+          .limit(100)
+        if (legacyPurchaseError) throw legacyPurchaseError
+        giftPurchases = (legacyPurchases || []).map((row: any) => ({
+          gift_id: String(row.payload?.giftId || ''),
+          created_at: row.created_at,
+        })).filter((row: any) => row.gift_id)
+      }
 
       return json({
         ok: true,
