@@ -34,13 +34,13 @@ describe('POCHEMUЧКА curriculum', () => {
     expect(new Set(questions).size).toBe(questions.length)
   })
   it('keeps quiz explanations educationally useful', () => {
-    for (const activity of lessons.flatMap(l => l.steps)) {
+    for (const activity of lessons.flatMap(l => l.steps).filter(a => a.type === 'quiz')) {
       const explanation = String((activity.data as any).explanation || '')
       expect(explanation.length).toBeGreaterThanOrEqual(15)
     }
   })
   it('all quiz activities have three distinct answers and an explanation', () => {
-    for (const activity of lessons.flatMap(l => l.steps)) {
+    for (const activity of lessons.flatMap(l => l.steps).filter(a => a.type === 'quiz')) {
       const d = activity.data as any
       expect(d.answers).toHaveLength(3)
       expect(new Set(d.answers.map((x: any) => x.text)).size).toBe(3)
