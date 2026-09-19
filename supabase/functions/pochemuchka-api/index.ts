@@ -147,7 +147,7 @@ serve(async (req) => {
         return json({ ok: true, telegramUser: user, profile: null, progress: [], activityAttempts: [] })
       }
 
-      const [{ data: progress, error: progressError }, { data: attempts, error: attemptsError }] =
+      const [{ data: progress, error: progressError }, { data: attempts, error: attemptsError }, { data: giftPurchases, error: giftError }] =
         await Promise.all([
           admin.from('lesson_progress').select('*').eq('profile_id', profile.id),
           admin
@@ -156,15 +156,24 @@ serve(async (req) => {
             .eq('profile_id', profile.id)
             .order('created_at', { ascending: true })
             .limit(1000),
+          admin
+            .from('analytics_events')
+            .select('payload,created_at')
+            .eq('profile_id', profile.id)
+            .eq('event_name', 'gift_purchased')
+            .order('created_at', { ascending: true })
+            .limit(100),
         ])
       if (progressError) throw progressError
       if (attemptsError) throw attemptsError
+      if (giftError) throw giftError
       return json({
         ok: true,
         telegramUser: user,
         profile,
         progress: progress || [],
         activityAttempts: attempts || [],
+        giftPurchases: (giftPurchases || []).map((row: any) => ({ gift_id: String(row.payload?.giftId || '') })).filter((row: any) => row.gift_id),
       })
     }
 
@@ -241,6 +250,50 @@ serve(async (req) => {
       if (error) throw error
 
       return json({ ok: true, isCorrect, attempt: data })
+    }
+
+    if (body.action === 'purchase_gift') {
+      const giftId = String(body.payload?.giftId || '')
+      const giftCosts: Record<string, number> = { sticker: 5, avatar: 10, treasure: 15 }
+      const cost = giftCosts[giftId]
+      if (!cost) return json({ error: 'unknown gift' }, 400)
+
+      const { data: purchases, error: purchaseReadError } = await admin
+        .from('analytics_events')
+        .select('payload,created_at')
+        .eq('profile_id', profile.id)
+        .eq('event_name', 'gift_purchased')
+        .order('created_at', { ascending: true })
+      if (purchaseReadError) throw purchaseReadError
+
+      const purchasedGifts = (purchases || [])
+        .map((row: any) => String(row.payload?.giftId || ''))
+        .filter(Boolean)
+      if (purchasedGifts.includes(giftId)) {
+        const earned = await admin.from('lesson_progress').select('stars').eq('profile_id', profile.id)
+        if (earned.error) throw earned.error
+        const stars = Math.max(0, (earned.data || []).reduce((n: number, row: any) => n + Number(row.stars || 0), 0) - purchasedGifts.reduce((n, id) => n + (giftCosts[id] || 0), 0))
+        return json({ ok: true, alreadyPurchased: true, stars, purchasedGifts })
+      }
+
+      const { data: progressRows, error: starError } = await admin
+        .from('lesson_progress')
+        .select('stars')
+        .eq('profile_id', profile.id)
+      if (starError) throw starError
+      const earnedStars = (progressRows || []).reduce((n: number, row: any) => n + Number(row.stars || 0), 0)
+      const spentStars = purchasedGifts.reduce((n, id) => n + (giftCosts[id] || 0), 0)
+      const stars = earnedStars - spentStars
+      if (stars < cost) return json({ error: 'not enough stars', stars: Math.max(0, stars) }, 400)
+
+      const { error: purchaseError } = await admin.from('analytics_events').insert({
+        profile_id: profile.id,
+        event_name: 'gift_purchased',
+        payload: { giftId, cost },
+      })
+      if (purchaseError) throw purchaseError
+
+      return json({ ok: true, stars: stars - cost, purchasedGifts: [...purchasedGifts, giftId] })
     }
 
     if (body.action === 'leaderboard') {
