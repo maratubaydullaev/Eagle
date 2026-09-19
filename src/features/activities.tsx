@@ -126,6 +126,14 @@ export function MatchingActivity({ activity, onResult, onAttempt }: { activity: 
   const [finished, setFinished] = useState(false)
   const [wrong, setWrong] = useState(false)
   const [startedAt] = useState(() => Date.now())
+  const [rightItems] = useState<string[]>(() => {
+    const values = d.pairs.map((pair: string[]) => pair[1])
+    for (let i = values.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[values[i], values[j]] = [values[j], values[i]]
+    }
+    return values
+  })
   const pairs = new Map<string, string>(d.pairs)
 
   function choose(value: string) {
@@ -156,17 +164,20 @@ export function MatchingActivity({ activity, onResult, onAttempt }: { activity: 
   return <div className="activity">
     <h2>{activity.instructions}</h2>
     <div className="match-grid">
-      {d.pairs.flat().map((value: string) =>
-        <button
-          key={value}
-          disabled={finished || done.includes(value)}
-          className={selected === value ? 'selected' : done.includes(value) ? 'matched' : ''}
-          aria-pressed={selected === value}
-          onClick={() => choose(value)}
-        >
-          {value}
-        </button>
-      )}
+      {d.pairs.map((pair: string[], index: number) => {
+        const values = [pair[0], rightItems[index]]
+        return values.map((value: string) =>
+          <button
+            key={value}
+            disabled={finished || done.includes(value)}
+            className={selected === value ? 'selected' : done.includes(value) ? 'matched' : ''}
+            aria-pressed={selected === value}
+            onClick={() => choose(value)}
+          >
+            {value}
+          </button>
+        )
+      })}
     </div>
     {wrong && !finished && <div className="feedback bad" role="status">Эта пара не подходит. Попробуй ещё раз 💪</div>}
     {finished && <>
