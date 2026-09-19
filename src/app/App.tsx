@@ -33,22 +33,23 @@ function Home({ s, nav }: { s: AppState; nav: (r: string) => void }) {
         </div>
       </div>
 
-      <div className="hero-card">
+      <div className="hero-card home-mission">
         <div className="hero-copy">
-          <span className="hero-badge">Сегодняшняя миссия</span>
-          <h2>{next ? 'Продолжим учиться?' : 'Ты всё выполнил!'}</h2>
-          <p>{next?.title || 'Все доступные уроки пройдены. Молодец!'}</p>
+          <span className="hero-badge">{next ? '✨ Твоя следующая миссия' : '🏆 День знаний'}</span>
+          <h2>{next ? (s.lastLessonId === next.id ? 'Продолжим урок?' : 'Готов к новому уроку?') : 'Ты всё выполнил!'}</h2>
+          <p>{next ? next.title : 'Все доступные уроки пройдены. Самое время заглянуть в достижения.'}</p>
+          {next && <div className="mission-progress"><span>Следующий шаг</span><b>{s.progress[next.id]?.status === 'in_progress' ? 'Урок начат' : 'Урок ещё не начат'}</b></div>}
           <button className="hero-button" disabled={!next} onClick={() => next && nav('lesson:' + next.id)}>
-            {next ? 'Начать урок →' : 'Посмотреть достижения'}
+            {next ? (s.progress[next.id]?.status === 'in_progress' ? 'Продолжить →' : 'Начать урок →') : 'Открыть достижения →'}
           </button>
         </div>
-        <div className="hero-mascot"><Mascot mood="happy" /></div>
+        <div className="hero-mascot"><Mascot mood={next ? 'happy' : 'thinking'} /></div>
       </div>
 
-      <div className="stats-strip">
-        <div><span>⭐</span><b>{s.xp}</b><small>Баллы</small></div>
-        <div><span>✨</span><b>{s.stars}</b><small>Звёзды</small></div>
-        <div><span>📚</span><b>{completed}</b><small>Уроков</small></div>
+      <div className="stats-strip home-stats">
+        <button type="button" onClick={() => nav('progress')}><span>⭐</span><b>{s.xp}</b><small>Баллы</small></button>
+        <button type="button" onClick={() => nav('progress')}><span>✨</span><b>{s.stars}</b><small>Звёзды</small></button>
+        <button type="button" onClick={() => nav('progress')}><span>📚</span><b>{completed}</b><small>Уроков</small></button>
       </div>
 
       {s.purchasedGifts.length > 0 && (
@@ -68,8 +69,8 @@ function Home({ s, nav }: { s: AppState; nav: (r: string) => void }) {
       )}
 
       <div className="section-title worlds-title">
-        <h2>Твои миры</h2>
-        <button onClick={() => nav('progress')}>Мой прогресс →</button>
+        <div><p className="section-kicker">ОБУЧЕНИЕ</p><h2>Твои миры</h2></div>
+        <button onClick={() => nav('progress')}>Прогресс →</button>
       </div>
 
       <div className="world-grid">
@@ -91,6 +92,8 @@ function Home({ s, nav }: { s: AppState; nav: (r: string) => void }) {
           )
         })}
       </div>
+
+      <div className="home-tip"><span>💡</span><div><b>Совет Котёнка-Доктора</b><small>Если задание кажется сложным — не спеши. Прочитай вопрос ещё раз.</small></div></div>
 
       <div className="motivation-card">
         <Mascot mood="thinking" />
