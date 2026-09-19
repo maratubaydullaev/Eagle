@@ -68,7 +68,11 @@ export const backend = {
   async saveProfile(profile: ChildProfile) {
     await call('save_profile', { name: profile.name, age: profile.age, avatar: profile.avatar })
   },
-  async getLeaderboard(): Promise<LeaderboardEntry[]> {\n    const body = await call('leaderboard')\n    return body ? (body.leaderboard || []) as LeaderboardEntry[] : []\n  },\n  async getDueReviews(): Promise<LessonProgress[]> {
+  async getLeaderboard(): Promise<LeaderboardEntry[]> {
+    const body = await call('leaderboard')
+    return body ? (body.leaderboard || []) as LeaderboardEntry[] : []
+  },
+  async getDueReviews(): Promise<LessonProgress[]> {
     const body = await call('due_reviews')
     return body ? (body.progress || []).map(fromRow) : []
   },
