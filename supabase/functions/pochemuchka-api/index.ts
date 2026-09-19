@@ -118,6 +118,12 @@ function evaluateActivity(type: string, content: any, answer: unknown) {
     )
   }
 
+  if (type === 'sorting' || type === 'sequence') {
+    if (!Array.isArray(answer) || !Array.isArray(content.correctOrder)) return false
+    return answer.length === content.correctOrder.length &&
+      answer.every((value: unknown, index: number) => String(value) === String(content.correctOrder[index]))
+  }
+
   return false
 }
 
