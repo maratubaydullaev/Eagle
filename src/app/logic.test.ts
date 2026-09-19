@@ -21,7 +21,8 @@ describe('POCHEMUЧКА curriculum', () => {
     expect(new Set(lessonIds).size).toBe(12)
     expect(new Set(activityIds).size).toBe(200)
   })
-  it('all curriculum activities are supported quizzes', () => expect(lessons.flatMap(l => l.steps).every(a => a.type === 'quiz')).toBe(true))
+  it('curriculum uses multiple activity types', () => { const types = new Set(lessons.flatMap(l => l.steps).map(a => a.type)); expect(types).toEqual(new Set(['quiz', 'matching', 'drag_drop', 'sorting'])) })
+  it('has interactive activities in the first lesson of each world', () => { expect(lessons.find(l => l.id === 'nature-1')!.steps[0].type).toBe('sorting'); expect(lessons.find(l => l.id === 'animals-1')!.steps[0].type).toBe('matching'); expect(lessons.find(l => l.id === 'language-1')!.steps[0].type).toBe('drag_drop'); expect(lessons.find(l => l.id === 'math-1')!.steps[0].type).toBe('sorting') })
   it('validates every curriculum activity with the strict activity schema', () => {
     for (const activity of lessons.flatMap(l => l.steps)) {
       expect(() => ActivitySchema.parse(activity)).not.toThrow()
