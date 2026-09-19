@@ -297,7 +297,7 @@ serve(async (req) => {
       const { data: lessonCatalog, error: lessonError } = await admin
         .from('lessons')
         .select('id,title')
-        .eq('status', 'published')
+        .eq('is_active', true)
       if (lessonError) throw lessonError
 
       const leaderboard = (profiles || [])
