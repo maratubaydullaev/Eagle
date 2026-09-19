@@ -260,7 +260,7 @@ const math3: Row[] = [
 ]
 
 const lesson = (id: string, worldId: string, topicId: string, title: string, grade: 1|2|3, description: string, orderIndex: number, data: Row[]): Lesson => ({
-  id, worldId, topicId, title, grade, description, ageMin: grade === 1 ? 6 : grade === 2 ? 8 : 9, ageMax: grade === 1 ? 7 : grade === 2 ? 8 : 10,
+  id, worldId, topicId, title, grade, description, ageMin: grade === 1 ? 4 : grade === 2 ? 7 : 9, ageMax: grade === 1 ? 6 : grade === 2 ? 8 : 10,
   difficulty: grade, learningGoal: [grade === 1 ? 'узнавать и понимать базовые понятия' : grade === 2 ? 'объяснять причины и связи' : 'объяснять процессы и применять знания'], orderIndex,
   steps: rows(id + '-', data)
 })
