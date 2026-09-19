@@ -354,6 +354,32 @@ serve(async (req) => {
         return json({ error: 'lesson unavailable for this profile' }, 403)
       }
 
+      // The client lock is UX only; the server also enforces lesson sequence.
+      const { data: sequence, error: sequenceError } = await admin
+        .from('lessons')
+        .select('id,order_index')
+        .eq('topic_id', lesson.topic_id)
+        .eq('is_active', true)
+        .lte('age_min', profile.age)
+        .gte('age_max', profile.age)
+        .order('order_index', { ascending: true })
+      if (sequenceError) throw sequenceError
+
+      const lessonIndex = (sequence || []).findIndex((item: any) => item.id === lessonId)
+      if (lessonIndex > 0) {
+        const previousLessonId = sequence![lessonIndex - 1].id
+        const { data: previousProgress, error: previousProgressError } = await admin
+          .from('lesson_progress')
+          .select('status')
+          .eq('profile_id', profile.id)
+          .eq('lesson_id', previousLessonId)
+          .maybeSingle()
+        if (previousProgressError) throw previousProgressError
+        if (previousProgress?.status !== 'completed') {
+          return json({ error: 'lesson locked' }, 403)
+        }
+      }
+
       const { data: activities, error: activitiesError } = await admin
         .from('activities')
         .select('id,type,content')
