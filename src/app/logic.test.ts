@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { lessons, worlds } from '../content/content'
 import { learning, repetition, storage, ageAdaptation, gradeForAge } from '../services/core'
+import { ActivitySchema } from '../schemas/content'
 
 describe('POCHEMUЧКА curriculum', () => {
   it('has 12 curriculum lessons', () => expect(lessons).toHaveLength(12))
@@ -21,6 +22,22 @@ describe('POCHEMUЧКА curriculum', () => {
     expect(new Set(activityIds).size).toBe(200)
   })
   it('all curriculum activities are supported quizzes', () => expect(lessons.flatMap(l => l.steps).every(a => a.type === 'quiz')).toBe(true))
+  it('validates every curriculum activity with the strict activity schema', () => {
+    for (const activity of lessons.flatMap(l => l.steps)) {
+      expect(() => ActivitySchema.parse(activity)).not.toThrow()
+    }
+  })
+  it('has no duplicate question text in the curriculum', () => {
+    const normalize = (value: string) => value.toLowerCase().replace(/[«»"“”.,!?—–:;()]/g, '').replace(/\s+/g, ' ').trim()
+    const questions = lessons.flatMap(l => l.steps).map(a => normalize(String((a.data as any).question)))
+    expect(new Set(questions).size).toBe(questions.length)
+  })
+  it('keeps explanations educationally useful', () => {
+    for (const activity of lessons.flatMap(l => l.steps)) {
+      const explanation = String((activity.data as any).explanation || '')
+      expect(explanation.length).toBeGreaterThanOrEqual(15)
+    }
+  })
   it('all quiz activities have three distinct answers and an explanation', () => {
     for (const activity of lessons.flatMap(l => l.steps)) {
       const d = activity.data as any
