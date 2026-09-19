@@ -94,6 +94,84 @@ describe('POCHEMUЧКА curriculum', () => {
     const state: any = { profile: { age: 7, grade: 2 }, progress: {}, activityMastery: {}, xp: 0, stars: 0 }
     expect(learning.status(state, lessons.find(l => l.worldId === 'world' && l.grade === 2)!)).toBe('available')
   })
+  it('locks a completed lesson until its review date', () => {
+    const lesson = lessons.find(l => l.worldId === 'world' && l.grade === 2)!
+    const state: any = {
+      profile: { age: 7, grade: 2 },
+      progress: {
+        [lesson.id]: {
+          id: 'p3',
+          profileId: 'child',
+          lessonId: lesson.id,
+          status: 'completed',
+          score: lesson.steps.length,
+          mastery: 1,
+          attempts: 1,
+          completedAt: '2026-09-19T10:00:00Z',
+          nextReviewAt: '2026-09-26T10:00:00Z',
+          xp: 50,
+          stars: 3,
+        },
+      },
+      activityMastery: {},
+      xp: 50,
+      stars: 3,
+    }
+    expect(learning.status(state, lesson)).toBe('completed_locked')
+  })
+  it('reopens a completed lesson when its review date is due', () => {
+    const lesson = lessons.find(l => l.worldId === 'world' && l.grade === 2)!
+    const state: any = {
+      profile: { age: 7, grade: 2 },
+      progress: {
+        [lesson.id]: {
+          id: 'p4',
+          profileId: 'child',
+          lessonId: lesson.id,
+          status: 'completed',
+          score: lesson.steps.length,
+          mastery: 1,
+          attempts: 1,
+          completedAt: '2026-09-12T10:00:00Z',
+          nextReviewAt: '2026-09-19T10:00:00Z',
+          xp: 50,
+          stars: 3,
+        },
+      },
+      activityMastery: {},
+      xp: 50,
+      stars: 3,
+    }
+    expect(learning.status(state, lesson)).toBe('available')
+  })
+  it('does not grant a second XP reward when replaying a completed lesson', () => {
+    const lesson = lessons.find(l => l.worldId === 'world' && l.grade === 2)!
+    const state: any = {
+      profile: { id: 'child', age: 7, grade: 2 },
+      progress: {
+        [lesson.id]: {
+          id: 'p5',
+          profileId: 'child',
+          lessonId: lesson.id,
+          status: 'completed',
+          score: lesson.steps.length,
+          mastery: 1,
+          attempts: 1,
+          completedAt: '2026-09-12T10:00:00Z',
+          nextReviewAt: '2026-09-19T10:00:00Z',
+          xp: 50,
+          stars: 3,
+        },
+      },
+      activityMastery: {},
+      xp: 50,
+      stars: 3,
+    }
+    const replay = learning.complete(state, lesson, lesson.steps.length)
+    expect(replay.xp).toBe(50)
+    expect(replay.progress[lesson.id].xp).toBe(50)
+    expect(replay.progress[lesson.id].attempts).toBe(2)
+  })
   it('storage tolerates missing browser localStorage', () => {
     expect(storage.load().progress).toBeDefined()
   })
