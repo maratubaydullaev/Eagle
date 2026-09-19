@@ -446,3 +446,49 @@ button:focus-visible,input:focus-visible{
   .home-tip b{font-size:14px!important}
   .home-tip small{font-size:10px!important}
 }
+
+/* HOME REFINEMENT — exact approved composition pass */
+.home-approved{padding:14px 22px 16px!important}
+.home-greeting{margin:4px 4px 14px!important}
+.home-greeting h1{font-size:34px!important;color:#102D5F!important;margin:0 0 5px!important}
+.home-greeting>div>p:not(.eyebrow){font-size:16px!important;color:#315779!important}
+.home-profile-mini{display:none!important}
+.cat-hero{min-height:340px!important;background:#7FD5F2!important;border-radius:26px!important}
+.forest-scene{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0}
+.cat-hero-copy{width:46%!important;z-index:3!important;padding-top:20px!important}
+.cat-speech{background:#fff;color:#102D5F;font-size:21px;line-height:1.25;font-weight:800;padding:24px 26px 28px;border-radius:42px 42px 42px 12px;box-shadow:0 12px 28px rgba(55,98,120,.12);max-width:360px}
+.cat-hero-mascot{right:2%!important;bottom:-5px!important;width:53%!important;max-width:430px!important;z-index:3!important}
+.doctor-mascot{width:100%;height:auto;display:block;filter:drop-shadow(0 12px 12px rgba(55,79,73,.12))}
+.home-stat-card{margin:-27px 4px 20px!important;padding:12px 8px!important}
+.home-stat-card button span{font-size:30px!important;line-height:1}
+.home-stat-card button b{font-size:25px!important}
+.home-stat-card button small{font-size:12px!important}
+.coin-icon{width:34px;height:34px!important;border-radius:50%;display:grid!important;place-items:center;background:linear-gradient(145deg,#FFE16A,#F4A92D);border:3px solid #E69B20;box-shadow:inset 0 0 0 3px #FFD95A;font-size:17px!important;color:#fff7b0!important;text-shadow:0 1px 1px #B77718}
+.star-icon{font-size:35px!important;color:#FFC43D!important;text-shadow:0 2px 0 #E59C18}
+.home-section-title{margin:0 5px 8px!important}
+.home-section-title h2{font-size:25px!important}
+.home-section-title button{font-size:13px!important}
+.home-world-grid{gap:9px!important}
+.home-world-card{min-height:108px!important;padding:11px!important;border-radius:20px!important;grid-template-columns:56px 1fr auto!important}
+.home-world-card .world-icon{width:56px!important;height:56px!important;font-size:34px!important;border-radius:18px!important}
+.home-world-card .world-info b{font-size:15px!important}
+.home-world-card .world-info small{font-size:11px!important;margin-top:4px!important}
+.home-world-card .world-info i{height:7px!important;margin-top:8px!important}
+.home-world-card>strong{font-size:23px!important}
+.home-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0 0}
+.home-actions button{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:7px;min-height:58px;padding:9px 11px;border-radius:18px;border:1px solid #DCEEEB;background:#fff;box-shadow:0 9px 20px rgba(55,98,94,.08);color:#17385F;text-align:left}
+.home-actions button span{font-size:25px}.home-actions button b{font-size:14px}.home-actions button strong{font-size:18px;color:#357AC5}
+.home-tip{position:relative;min-height:104px!important;margin:11px 0 0!important;padding:0 18px!important;border-radius:22px!important;background:linear-gradient(100deg,#72D2F0,#BDEEF8)!important;overflow:hidden!important;display:flex!important;align-items:center!important;gap:4px!important}
+.home-tip-art{align-self:flex-end;width:31%;max-width:155px;min-width:92px;margin-left:-4px}.home-tip-art .doctor-mascot{width:100%}
+.home-tip-bulb{font-size:40px;line-height:1;margin-left:-8px;filter:drop-shadow(0 3px 2px rgba(224,165,24,.2))}
+.home-tip-copy{margin-left:auto;width:54%;z-index:2}.home-tip-copy b{font-size:18px!important;line-height:1.2!important;color:#123266!important}
+.home-tip>span,.home-tip>div>small{display:none!important}
+@media(max-width:700px){
+ .home-approved{padding:10px 14px 14px!important}.home-greeting{margin:4px 3px 11px!important}.home-greeting h1{font-size:28px!important}.home-greeting>div>p:not(.eyebrow){font-size:13px!important}
+ .cat-hero{min-height:275px!important;border-radius:23px!important}.cat-hero-copy{width:48%!important;padding-top:13px!important}.cat-speech{font-size:15px;padding:16px 16px 19px;border-radius:29px 29px 29px 10px}.cat-hero-mascot{width:56%!important}
+ .home-stat-card{margin:-22px 1px 15px!important;padding:9px 5px!important}.home-stat-card button span{font-size:23px!important}.home-stat-card button b{font-size:20px!important}.home-stat-card button small{font-size:10px!important}.coin-icon{width:27px;height:27px!important;font-size:13px!important}.star-icon{font-size:27px!important}
+ .home-section-title h2{font-size:21px!important}.home-section-title button{font-size:11px!important}
+ .home-world-grid{gap:8px!important}.home-world-card{min-height:91px!important;padding:8px!important;grid-template-columns:46px 1fr auto!important;border-radius:17px!important}.home-world-card .world-icon{width:46px!important;height:46px!important;font-size:28px!important;border-radius:14px!important}.home-world-card .world-info b{font-size:12px!important}.home-world-card .world-info small{font-size:9px!important}.home-world-card .world-info i{height:5px!important;margin-top:6px!important}.home-world-card>strong{font-size:18px!important}
+ .home-actions{gap:8px;margin-top:9px}.home-actions button{min-height:50px;padding:7px 8px;border-radius:16px}.home-actions button span{font-size:21px}.home-actions button b{font-size:11px}.home-actions button strong{font-size:15px}
+ .home-tip{min-height:82px!important;border-radius:18px!important;padding:0 10px!important}.home-tip-art{width:29%;min-width:78px}.home-tip-bulb{font-size:29px}.home-tip-copy{width:57%}.home-tip-copy b{font-size:12px!important}
+}
