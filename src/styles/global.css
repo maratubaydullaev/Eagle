@@ -216,3 +216,24 @@ body{
 @media(prefers-reduced-motion:reduce){
   .activity-meta span,.answers button,.feedback,.next-step{transition:none!important;animation:none!important}
 }
+
+/* Home dashboard refinement */
+.home-mission{min-height:205px}
+.home-mission .hero-copy{width:70%}
+.home-mission .hero-mascot{width:40%;max-width:175px;bottom:-6px}
+.mission-progress{display:flex;gap:7px;align-items:center;margin-top:9px;font-size:10px;color:#5D7D78}
+.mission-progress span{padding:4px 7px;border-radius:999px;background:rgba(255,255,255,.7);font-weight:800}
+.mission-progress b{font-size:10px;color:#3B82C8}
+.home-stats>button{position:relative;display:block;width:100%;border:1px solid var(--line);border-radius:18px;padding:11px 8px;background:#fff;color:inherit;text-align:center;box-shadow:var(--shadow);cursor:pointer;overflow:hidden;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.home-stats>button:hover{transform:translateY(-2px);border-color:#BFDDF4;box-shadow:0 13px 26px -20px rgba(33,74,120,.55)}
+.home-stats>button:focus-visible{outline:3px solid rgba(76,157,255,.25);outline-offset:2px}
+.home-stats>button:after{content:"→";position:absolute;right:7px;bottom:5px;font-size:10px;color:#A2B9C5;opacity:0;transition:opacity .16s}
+.home-stats>button:hover:after{opacity:1}
+.section-kicker{margin:0 0 2px;font-size:9px;font-weight:1000;letter-spacing:.13em;color:#7C9A95}
+.worlds-title .section-title{align-items:flex-end}
+.home-tip{display:flex;align-items:center;gap:10px;margin-top:12px;padding:12px 14px;border-radius:20px;background:linear-gradient(135deg,#FFF9E8,#FFF3D2);border:1px solid #F4E3B3;box-shadow:0 10px 25px -23px rgba(124,109,69,.7)}
+.home-tip>span{display:grid;place-items:center;width:38px;height:38px;flex:none;border-radius:13px;background:#fff;font-size:21px;box-shadow:0 5px 12px -10px rgba(124,109,69,.5)}
+.home-tip b,.home-tip small{display:block}.home-tip b{font-size:12px;color:#795E24}.home-tip small{margin-top:2px;font-size:10px;line-height:1.35;color:#8A7646}
+.home .motivation-card{margin-top:10px}
+@media(max-width:380px){.home-mission .hero-copy{width:74%}.home-mission .hero-mascot{width:37%}.mission-progress{display:none}}
+@media(prefers-reduced-motion:reduce){.home-stats>button{transition:none}.home-stats>button:hover{transform:none}.home-stats>button:after{transition:none}}
