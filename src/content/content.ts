@@ -287,4 +287,47 @@ export const lessons: Lesson[] = [
   lesson('math-3','math','math-basics','Математика: Объясни и примени',3,'Решаем задачи и применяем математические понятия.',3,math3)
 ]
 
+const interactiveOverrides: Record<string, Activity> = {
+  'nature-1-01': {
+    id: 'nature-1-01',
+    type: 'sorting',
+    title: 'Поставь времена года по порядку',
+    instructions: 'Расставь времена года от весны до зимы',
+    data: { items: ['Весна', 'Лето', 'Осень', 'Зима'], correctOrder: ['Весна', 'Лето', 'Осень', 'Зима'] },
+    reward: { xp: 10 },
+  },
+  'animals-1-01': {
+    id: 'animals-1-01',
+    type: 'matching',
+    title: 'Соедини части растения с их ролью',
+    instructions: 'Найди правильные пары',
+    data: { pairs: [['Корень', 'Поглощает воду'], ['Лист', 'Помогает растению получать энергию'], ['Стебель', 'Поддерживает растение']] },
+    reward: { xp: 10 },
+  },
+  'language-1-01': {
+    id: 'language-1-01',
+    type: 'drag_drop',
+    title: 'Соедини понятие и объяснение',
+    instructions: 'Выбери элемент и подходящее объяснение',
+    data: {
+      items: ['Слово', 'Слова', 'Предложение'],
+      targets: ['Единица речи', 'Несколько слов', 'Мысль, выраженная словами'],
+      correct: ['Слово', 'Слова', 'Предложение'],
+    },
+    reward: { xp: 10 },
+  },
+  'math-1-01': {
+    id: 'math-1-01',
+    type: 'sorting',
+    title: 'Расставь числа по возрастанию',
+    instructions: 'Поставь числа от меньшего к большему',
+    data: { items: ['2', '5', '8', '11'], correctOrder: ['2', '5', '8', '11'] },
+    reward: { xp: 10 },
+  },
+}
+
+lessons.forEach(lessonItem => {
+  lessonItem.steps = lessonItem.steps.map(activity => interactiveOverrides[activity.id] || activity)
+})
+
 lessons.forEach(l => LessonSchema.parse(l))
