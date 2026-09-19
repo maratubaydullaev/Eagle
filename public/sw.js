@@ -1,4 +1,4 @@
-const CACHE='pochemuchka-shell-v3'
+const CACHE='pochemuchka-shell-v4'
 const BASE=new URL('./',self.registration.scope).pathname
 const SHELL=[BASE,BASE+'manifest.webmanifest',BASE+'icons/icon-192.svg',BASE+'icons/icon-512.svg']
 
@@ -12,13 +12,24 @@ self.addEventListener('activate',event=>event.waitUntil(
 ))
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET') return
+  const requestUrl=new URL(event.request.url)
+  const isNavigation=event.request.mode==='navigate' || requestUrl.pathname===BASE
   event.respondWith(
-    caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{
-      if(response.ok&&new URL(event.request.url).origin===self.location.origin){
-        const copy=response.clone()
-        caches.open(CACHE).then(cache=>cache.put(event.request,copy))
-      }
-      return response
-    }).catch(()=>caches.match(BASE)))
+    (isNavigation
+      ? fetch(event.request).then(response=>{
+          if(response.ok){
+            const copy=response.clone()
+            caches.open(CACHE).then(cache=>cache.put(event.request,copy))
+          }
+          return response
+        }).catch(()=>caches.match(event.request).then(cached=>cached||caches.match(BASE)))
+      : caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{
+          if(response.ok&&requestUrl.origin===self.location.origin){
+            const copy=response.clone()
+            caches.open(CACHE).then(cache=>cache.put(event.request,copy))
+          }
+          return response
+        }).catch(()=>caches.match(BASE)))
+    )
   )
 })
