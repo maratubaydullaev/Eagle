@@ -46,26 +46,76 @@ export function QuizActivity({ activity, onResult, onAttempt, timerSeconds = 15 
 
 export function DragDropActivity({ activity, onResult, onAttempt }: { activity: Activity; onResult: (ok: boolean) => void; onAttempt: Attempt }) {
   const d = activity.data as any
-  const [items, setItems] = useState<string[]>(d.items)
-  const [placed, setPlaced] = useState<string[]>([])
+  const [selectedItem, setSelectedItem] = useState<string | null>(null)
+  const [placed, setPlaced] = useState<Record<string, string>>({})
   const [wrong, setWrong] = useState(false)
+  const [finished, setFinished] = useState(false)
   const [startedAt] = useState(() => Date.now())
-  function move(item: string, target: string) {
-    const index = d.targets.indexOf(target), ok = d.correct[index] === item
-    if (ok) {
-      const next = [...placed, item]
-      setPlaced(next); setItems(xs => xs.filter(x => x !== item))
-      if (next.length === d.targets.length) window.setTimeout(() => onResult(true), 250)
-    } else {
-      setWrong(true); window.setTimeout(() => setWrong(false), 500)
-    }
-    reportAttempt(onAttempt, ok, { item, target }, Date.now() - startedAt)
+
+  function chooseItem(item: string) {
+    if (finished || Object.values(placed).includes(item)) return
+    setSelectedItem(item)
+    setWrong(false)
   }
+
+  function chooseTarget(target: string) {
+    if (finished || placed[target] || !selectedItem) return
+
+    const index = d.targets.indexOf(target)
+    const ok = d.correct[index] === selectedItem
+    reportAttempt(onAttempt, ok, { item: selectedItem, target }, Date.now() - startedAt)
+
+    if (!ok) {
+      setWrong(true)
+      try { audio.wrong() } catch {}
+      return
+    }
+
+    try { audio.correct() } catch {}
+    const next = { ...placed, [target]: selectedItem }
+    setPlaced(next)
+    setSelectedItem(null)
+    setWrong(false)
+    if (Object.keys(next).length === d.targets.length) setFinished(true)
+  }
+
   return <div className="activity">
-    <h2>{activity.instructions}</h2>
-    <div className="drag-items">{items.map(x => <button key={x} draggable onDragStart={e => e.dataTransfer.setData('text/plain', x)} onClick={() => move(x, d.targets[placed.length])} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); move(x, d.targets[placed.length]) } }}>{x}</button>)}</div>
-    <div className="targets">{d.targets.map((t: string, i: number) => <div className="target" key={t} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); move(e.dataTransfer.getData('text/plain'), t) }} role="group" aria-label={'Цель: ' + t}><b>{t}</b><span>{placed[i] || 'Перетащи сюда'}</span></div>)}</div>
-    {wrong && <div className="feedback bad" role="status">Попробуй ещё раз 💪</div>}
+    <h2>{activity.instructions.replace('Перетащи', 'Подбери')}</h2>
+    <div className="drag-items">
+      {d.items.map((item: string) =>
+        <button
+          key={item}
+          type="button"
+          disabled={finished || Object.values(placed).includes(item)}
+          className={selectedItem === item ? 'selected' : Object.values(placed).includes(item) ? 'matched' : ''}
+          aria-pressed={selectedItem === item}
+          onClick={() => chooseItem(item)}
+        >
+          {item}
+        </button>
+      )}
+    </div>
+    <div className="targets">
+      {d.targets.map((target: string) =>
+        <button
+          key={target}
+          type="button"
+          disabled={finished || !!placed[target] || !selectedItem}
+          className={'target target-button' + (placed[target] ? ' matched' : '')}
+          onClick={() => chooseTarget(target)}
+        >
+          <b>{target}</b>
+          <span>{placed[target] || (selectedItem ? 'Выбери это место' : 'Сначала выбери животное')}</span>
+        </button>
+      )}
+    </div>
+    {wrong && !finished && <div className="feedback bad" role="status">Не подходит. Попробуй другую пару 💪</div>}
+    {finished && <>
+      <div className="feedback good" role="status">Все пары найдены! 🎉</div>
+      <button className="primary next-step" type="button" onClick={() => onResult(true)}>
+        Следующий вопрос →
+      </button>
+    </>}
   </div>
 }
 
