@@ -34,7 +34,8 @@ jobs:
             supabase/migrations/20260919210000_mvp_data_consistency_and_gift_transactions.sql \
             supabase/migrations/20260920230000_pochemuchka_curriculum_v2.sql \
             supabase/migrations/20260920240000_pochemuchka_quiz_answer_order.sql \
-            supabase/migrations/20260920250000_pochemuchka_content_quality_fixes.sql
+            supabase/migrations/20260920250000_pochemuchka_content_quality_fixes.sql \
+            supabase/migrations/20260920260000_pochemuchka_age_appropriate_content.sql
           do
             if [ ! -f "$SQL_FILE" ]; then
               echo "Migration file not found: $SQL_FILE"
