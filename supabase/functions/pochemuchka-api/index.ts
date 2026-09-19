@@ -190,7 +190,7 @@ serve(async (req) => {
         ok: true,
         telegramUser: user,
         profile,
-        progress: progressRows,
+        progress: progress || [],
         activityAttempts: attempts || [],
         giftPurchases: (giftPurchases || []).map((row: any) => ({ gift_id: String(row.gift_id || '') })).filter((row: any) => row.gift_id),
       })
