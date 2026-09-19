@@ -200,7 +200,7 @@ serve(async (req) => {
       const age = Number(body.payload?.age)
       const name = String(body.payload?.name || '').trim().slice(0, 40)
       const avatar = String(body.payload?.avatar || '🐱').slice(0, 8)
-      if (!name || age < 6 || age > 10) return json({ error: 'invalid profile' }, 400)
+      if (!name || age < 4 || age > 10) return json({ error: 'invalid profile' }, 400)
 
       const { error: ue } = await admin.from('telegram_users').upsert(
         {
