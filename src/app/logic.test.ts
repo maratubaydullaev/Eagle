@@ -40,7 +40,7 @@ describe('POCHEMUЧКА curriculum', () => {
   })
   it('maps school ages to grades', () => {
     expect(gradeForAge(6)).toBe(1)
-    expect(gradeForAge(7)).toBe(1)
+    expect(gradeForAge(7)).toBe(2)
     expect(gradeForAge(8)).toBe(2)
     expect(gradeForAge(9)).toBe(3)
     expect(gradeForAge(10)).toBe(3)
