@@ -73,24 +73,57 @@ export function MatchingActivity({ activity, onResult, onAttempt }: { activity: 
   const d = activity.data as any
   const [selected, setSelected] = useState<string | null>(null)
   const [done, setDone] = useState<string[]>([])
+  const [finished, setFinished] = useState(false)
+  const [wrong, setWrong] = useState(false)
   const [startedAt] = useState(() => Date.now())
   const pairs = new Map<string, string>(d.pairs)
+
   function choose(value: string) {
-    if (done.includes(value)) return
-    if (!selected) { setSelected(value); return }
-    const first = selected, ok = pairs.get(first) === value || pairs.get(value) === first
+    if (finished || done.includes(value)) return
+    if (!selected) {
+      setSelected(value)
+      return
+    }
+
+    const first = selected
+    const ok = pairs.get(first) === value || pairs.get(value) === first
+
     if (ok) {
       const next = [...done, first, value]
-      setDone(next); setSelected(null)
-      if (next.length === d.pairs.length * 2) window.setTimeout(() => onResult(true), 250)
+      setDone(next)
+      setSelected(null)
+      setWrong(false)
+      if (next.length === d.pairs.length * 2) setFinished(true)
     } else {
       setSelected(null)
+      setWrong(true)
       try { audio.wrong() } catch {}
     }
+
     reportAttempt(onAttempt, ok, { first, second: value }, Date.now() - startedAt)
   }
+
   return <div className="activity">
     <h2>{activity.instructions}</h2>
-    <div className="match-grid">{d.pairs.flat().map((value: string) => <button key={value} disabled={done.includes(value)} className={selected === value ? 'selected' : done.includes(value) ? 'matched' : ''} aria-pressed={selected === value} onClick={() => choose(value)}>{value}</button>)}</div>
+    <div className="match-grid">
+      {d.pairs.flat().map((value: string) =>
+        <button
+          key={value}
+          disabled={finished || done.includes(value)}
+          className={selected === value ? 'selected' : done.includes(value) ? 'matched' : ''}
+          aria-pressed={selected === value}
+          onClick={() => choose(value)}
+        >
+          {value}
+        </button>
+      )}
+    </div>
+    {wrong && !finished && <div className="feedback bad" role="status">Эта пара не подходит. Попробуй ещё раз 💪</div>}
+    {finished && <>
+      <div className="feedback good" role="status">Все пары найдены! 🎉</div>
+      <button className="primary next-step" type="button" onClick={() => onResult(true)}>
+        Следующий вопрос →
+      </button>
+    </>}
   </div>
 }
