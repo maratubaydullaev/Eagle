@@ -7,3 +7,7 @@ create index if not exists idx_topics_world on topics(world_id,order_index);crea
 alter table lesson_progress add column if not exists next_review_at timestamptz;
 create index if not exists idx_progress_review on lesson_progress(profile_id,next_review_at) where next_review_at is not null;
 
+
+create table if not exists gift_purchases(id uuid primary key default gen_random_uuid(),profile_id uuid not null references profiles(id) on delete cascade,gift_id text not null check(gift_id in ('sticker','avatar','treasure')),cost int not null check(cost > 0),created_at timestamptz default now(),unique(profile_id,gift_id));
+alter table gift_purchases enable row level security;
+create index if not exists idx_gift_purchases_profile on gift_purchases(profile_id,created_at desc);
