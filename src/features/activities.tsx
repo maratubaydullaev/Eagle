@@ -126,4 +126,4 @@ export function MatchingActivity({ activity, onResult, onAttempt }: { activity: 
       </button>
     </>}
   </div>
-}\n
+}
