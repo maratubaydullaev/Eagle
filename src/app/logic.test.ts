@@ -3,10 +3,10 @@ import { lessons, worlds } from '../content/content'
 import { learning, repetition, storage, ageAdaptation } from '../services/core'
 
 describe('POCHEMUЧКА MVP content', () => {
-  it('has exactly 10 MVP lessons', () => expect(lessons).toHaveLength(10))
-  it('has the MVP world lesson distribution', () => expect(Object.fromEntries(['world','math','animals'].map(id => [id, lessons.filter(l => l.worldId === id).length]))).toEqual({ world: 3, math: 4, animals: 3 }))
-  it('has three active MVP worlds', () => expect(worlds.filter(w => w.isActive).map(w => w.id)).toEqual(['world', 'math', 'animals']))
-  it('lesson ids are unique', () => expect(new Set(lessons.map(l => l.id)).size).toBe(10))
+  it('has 13 MVP lessons', () => expect(lessons).toHaveLength(13))
+  it('has the MVP world lesson distribution', () => expect(Object.fromEntries(['world','math','animals','languages'].map(id => [id, lessons.filter(l => l.worldId === id).length]))).toEqual({ world: 3, math: 4, animals: 3, languages: 3 }))
+  it('has four active MVP worlds', () => expect(worlds.filter(w => w.isActive).map(w => w.id)).toEqual(['world', 'math', 'animals', 'languages']))
+  it('lesson ids are unique', () => expect(new Set(lessons.map(l => l.id)).size).toBe(13))
   it('locks a lesson with any mistake until the next day', () => {
     const completedAt = new Date('2026-09-19T10:00:00Z').toISOString()
     const progress = {
