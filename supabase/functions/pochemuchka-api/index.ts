@@ -255,22 +255,37 @@ serve(async (req) => {
         .eq('status', 'completed')
       if (progressError) throw progressError
 
-      const totals = new Map<string, { points: number }>()
+      const totals = new Map<string, { points: number; completed: Set<string> }>()
       for (const row of progressRows || []) {
-        const current = totals.get(row.profile_id) || { points: 0 }
+        const current = totals.get(row.profile_id) || { points: 0, completed: new Set<string>() }
         current.points += Number(row.xp || 0)
+        current.completed.add(row.lesson_id)
         totals.set(row.profile_id, current)
       }
 
+      const { data: lessonCatalog, error: lessonError } = await admin
+        .from('lessons')
+        .select('id,title')
+        .eq('status', 'published')
+      if (lessonError) throw lessonError
+
       const leaderboard = (profiles || [])
         .map((p: any) => {
-          const total = totals.get(p.id) || { points: 0 }
+          const total = totals.get(p.id) || { points: 0, completed: new Set<string>() }
+          const lessons = (lessonCatalog || []).map((lesson: any) => ({
+            lessonId: lesson.id,
+            title: String(lesson.title || 'Урок'),
+            completed: total.completed.has(lesson.id),
+          }))
           return {
             profileId: p.id,
             name: String(p.name || 'Ученик').slice(0, 40),
             avatar: String(p.avatar || '🐱').slice(0, 8),
             points: total.points,
-                      }
+            completedLessons: lessons.filter((lesson) => lesson.completed).length,
+            totalLessons: lessons.length,
+            lessons,
+          }
         })
         .filter((entry) => entry.points > 0)
         .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name))
