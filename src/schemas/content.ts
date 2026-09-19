@@ -1,42 +1,42 @@
 import { z } from 'zod'
 
-const QuizAnswerSchema = z.object({
+export const QuizAnswerSchema = z.object({
   id: z.enum(['0', '1', '2']),
   text: z.string().min(1),
 })
 
-const QuizDataSchema = z.object({
+export const QuizDataSchema = z.object({
   question: z.string().min(1),
   answers: z.array(QuizAnswerSchema).length(3),
   correctAnswerId: z.enum(['0', '1', '2']),
   explanation: z.string().min(1),
 })
 
-const DragDropDataSchema = z.object({
+export const DragDropDataSchema = z.object({
   items: z.array(z.string().min(1)).min(1),
   targets: z.array(z.string().min(1)).min(1),
   correct: z.array(z.string().min(1)).min(1),
 })
 
-const MatchingDataSchema = z.object({
+export const MatchingDataSchema = z.object({
   pairs: z.array(z.tuple([z.string().min(1), z.string().min(1)])).min(1),
 })
 
-const SortingDataSchema = z.object({
+export const SortingDataSchema = z.object({
   items: z.array(z.string().min(1)).min(1),
   correctOrder: z.array(z.string().min(1)).min(1),
 })
 
-const MemoryDataSchema = z.object({
+export const MemoryDataSchema = z.object({
   pairs: z.array(z.tuple([z.string().min(1), z.string().min(1)])).min(1),
 })
 
-const FindObjectDataSchema = z.object({
+export const FindObjectDataSchema = z.object({
   objects: z.array(z.object({ id: z.string().min(1), label: z.string().min(1) })).min(1),
   correctId: z.string().min(1),
 })
 
-const SequenceDataSchema = z.object({
+export const SequenceDataSchema = z.object({
   items: z.array(z.string().min(1)).min(1),
   correctOrder: z.array(z.string().min(1)).min(1),
 })
