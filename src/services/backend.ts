@@ -1,4 +1,5 @@
 import type { AppState, ActivityAttempt, ChildProfile, LessonProgress, LeaderboardEntry } from '../app/types'
+import { gifts } from './core'
 import { telegram } from './core'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
@@ -56,17 +57,26 @@ export const backend = {
       if (id) activityMastery[id] = (activityMastery[id] ?? 0) * 0.7 + (ok ? 0.3 : 0)
     }
     const ps = Object.values(progress) as LessonProgress[]
+    const purchasedGifts = (body.giftPurchases || []).map((x: any) => String(x.gift_id || x.giftId)).filter(Boolean)
+    const earnedStars = ps.reduce((n, p) => n + p.stars, 0)
+    const spentStars = purchasedGifts.reduce((n: number, id: string) => n + (gifts[id as keyof typeof gifts] || 0), 0)
     return {
       profile,
       progress,
       activityMastery,
       xp: ps.reduce((n, p) => n + p.xp, 0),
-      stars: ps.reduce((n, p) => n + p.stars, 0),
+      stars: Math.max(0, earnedStars - spentStars),
+      purchasedGifts,
       lastLessonId: ps.find((p) => p.status === 'in_progress')?.lessonId,
     }
   },
   async saveProfile(profile: ChildProfile) {
     await call('save_profile', { name: profile.name, age: profile.age, avatar: profile.avatar })
+  },
+  async purchaseGift(giftId: string): Promise<{ stars: number; purchasedGifts: string[] }> {
+    const body = await call('purchase_gift', { giftId })
+    if (!body) throw new Error('backend unavailable')
+    return { stars: Number(body.stars || 0), purchasedGifts: (body.purchasedGifts || []).map(String) }
   },
   async getLeaderboard(): Promise<LeaderboardEntry[]> {
     const body = await call('leaderboard')
