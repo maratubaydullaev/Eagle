@@ -1,0 +1,7 @@
+project_id = "xqcexaewqxzvzzfddkjv"
+
+[functions.telegram-auth]
+verify_jwt = false
+
+[functions.pochemuchka-api]
+verify_jwt = false
