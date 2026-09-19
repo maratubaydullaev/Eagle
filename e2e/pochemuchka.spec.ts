@@ -25,8 +25,8 @@ test.beforeEach(async ({ page }) => {
 
 test('mobile learning journey: home → world → lesson → activity → result', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /Привет, Тест/ })).toBeVisible()
-  await page.getByRole('button', { name: /Природа/ }).click()
-  await expect(page.getByRole('heading', { name: /Природа:/ }).first()).toBeVisible()
+  await page.locator('.world-card').first().click()
+  await expect(page.getByRole('heading', { name: 'Природа' })).toBeVisible()
 
   await page.getByRole('button', { name: /Начать →/ }).first().click()
   await expect(page.getByText('ПЕРЕД НАЧАЛОМ')).toBeVisible()
@@ -46,7 +46,7 @@ test('mobile learning journey: home → world → lesson → activity → result
 })
 
 test('parent report is informational and has no fake arithmetic gate', async ({ page }) => {
-  await page.getByRole('button', { name: 'Я' }).click()
+  await page.locator('.bottom-nav button').nth(3).click()
   await page.getByRole('button', { name: /Для родителей/ }).click()
   await expect(page.getByRole('heading', { name: 'Прогресс ребёнка' })).toBeVisible()
   await expect(page.getByText(/нет фиктивного/)).toBeVisible()
