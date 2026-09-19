@@ -189,3 +189,49 @@ export function MatchingActivity({ activity, onResult, onAttempt }: { activity: 
     </>}
   </div>
 }
+
+export function SortingActivity({ activity, onResult, onAttempt }: { activity: Activity; onResult: (ok: boolean) => void; onAttempt: Attempt }) {
+  const d = activity.data as any
+  const [items, setItems] = useState<string[]>(() => [...d.items])
+  const [finished, setFinished] = useState(false)
+  const [ok, setOk] = useState<boolean | null>(null)
+  const [startedAt] = useState(() => Date.now())
+
+  function move(index: number, direction: -1 | 1) {
+    if (finished) return
+    const nextIndex = index + direction
+    if (nextIndex < 0 || nextIndex >= items.length) return
+    const next = [...items]
+    ;[next[index], next[nextIndex]] = [next[nextIndex], next[index]]
+    setItems(next)
+  }
+
+  function check() {
+    if (finished) return
+    const correct = items.every((item, index) => item === d.correctOrder[index])
+    setOk(correct)
+    setFinished(true)
+    reportAttempt(onAttempt, correct, items, Date.now() - startedAt)
+    try { correct ? audio.correct() : audio.wrong() } catch {}
+  }
+
+  return <div className="activity" onPointerDown={() => audio.unlock()}>
+    <h2>{activity.instructions}</h2>
+    <div className="sort-list">
+      {items.map((item: string, index: number) =>
+        <div className="sort-row" key={item}>
+          <strong>{index + 1}</strong>
+          <span>{item}</span>
+          <button type="button" disabled={finished || index === 0} aria-label={'Переместить ' + item + ' вверх'} onClick={() => move(index, -1)}>↑</button>
+          <button type="button" disabled={finished || index === items.length - 1} aria-label={'Переместить ' + item + ' вниз'} onClick={() => move(index, 1)}>↓</button>
+        </div>
+      )}
+    </div>
+    {!finished && <button className="primary next-step" type="button" onClick={check}>Проверить порядок →</button>}
+    {finished && <>
+      <div className={ok ? 'feedback good' : 'feedback bad'} role="status">{ok ? 'Отлично! Порядок верный 🎉' : 'Почти! Попробуй ещё раз и запомни правильную последовательность.'}</div>
+      {!ok && <div className="activity-guide"><Mascot mood="thinking"/><div><b>Подсказка</b><span>Сравни свой порядок с тем, что изучали в этом уроке.</span></div></div>}
+      <button className="primary next-step" type="button" onClick={() => onResult(!!ok)}>Следующий вопрос →</button>
+    </>}
+  </div>
+}
