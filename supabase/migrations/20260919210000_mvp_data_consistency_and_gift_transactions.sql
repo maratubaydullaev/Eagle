@@ -1,4 +1,7 @@
--- Fix MVP content drift and make gift purchases transactional.
+-- Fix MVP content drift, align profile ages with grade routing, and make gift purchases transactional.
+-- Profile age mapping: 4-6 -> grade 1, 7-8 -> grade 2, 9-10 -> grade 3.
+alter table profiles drop constraint if exists profiles_age_check;
+alter table profiles add constraint profiles_age_check check (age between 4 and 10);
 -- This migration is safe to run once on the existing production database.
 
 update activities
