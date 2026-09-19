@@ -329,3 +329,34 @@ button:focus-visible,input:focus-visible{
   .lesson-brief h1{font-size:22px}
   .sort-row{grid-template-columns:28px 1fr 38px 38px;padding:7px}
 }
+
+/* APPROVED HOME — Variant A */
+.home-approved{padding-bottom:12px}
+.home-greeting{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.home-greeting h1{font-size:24px;line-height:1.1;margin:4px 0 3px}
+.home-greeting>div>p:not(.eyebrow){margin:0;color:#67837F;font-size:12px}
+.home-profile-mini{width:48px;height:48px;flex:none;border:1px solid #D9EAF2;border-radius:17px;background:#FFF6D8;box-shadow:var(--shadow);font-size:23px;cursor:pointer}
+.cat-hero{display:flex;align-items:center;min-height:170px;padding:16px 15px 14px 17px;overflow:hidden;position:relative;background:linear-gradient(135deg,#E7F7F1 0%,#E9F3FF 100%);border-color:#D5EAF1}
+.cat-hero:after{content:"✦";position:absolute;right:26%;top:13px;color:#FFC95C;font-size:18px}
+.cat-hero-copy{position:relative;z-index:2;min-width:0;width:65%}
+.cat-badge{display:inline-flex;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.78);color:#3D7C70;font-size:9px;font-weight:900}
+.cat-hero h2{font-size:21px;line-height:1.13;margin:9px 0 5px;color:#214A78}
+.cat-hero p{font-size:11px;line-height:1.4;margin:0;color:#58736F}
+.cat-hero-action{margin-top:11px!important;min-height:42px!important;padding:9px 13px!important;border-radius:14px!important;font-size:11px!important}
+.cat-hero-mascot{position:absolute;right:1%;bottom:-4px;width:38%;max-width:155px;z-index:1}
+.cat-hero-mascot .mascot{width:100%;height:auto}
+.home-stat-card{display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;align-items:center;margin:10px 0 16px;padding:9px 5px;background:#fff;border:1px solid #DCEBF1;border-radius:20px;box-shadow:var(--shadow)}
+.home-stat-card button{border:0;background:transparent;color:inherit;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;padding:5px 3px}
+.home-stat-card button span{font-size:17px}.home-stat-card button b{font-size:18px;color:#214A78}.home-stat-card button small{font-size:9px;color:#6A8783;font-weight:800}
+.stat-divider{width:1px;height:28px;background:#E7EFF2}
+.home-section-title{margin:0 0 9px}.home-section-title h2{font-size:19px}.home-section-title button{font-size:10px}
+.home-world-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.home-world-card{min-height:108px;padding:11px;border-radius:20px;display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto 1fr;gap:7px 8px;align-items:start}
+.home-world-card .world-icon{width:43px;height:43px;border-radius:15px;font-size:25px;display:grid;place-items:center;background:#F0F8FF;grid-row:1 / span 2}
+.home-world-card .world-info{padding-top:2px}.home-world-card .world-info b{font-size:12px}.home-world-card .world-info small{font-size:9px}
+.home-world-card .world-info i{height:5px;margin-top:7px}.home-world-card strong{font-size:14px;color:#7AA29C}
+.home-learning-action{width:100%;display:flex;align-items:center;gap:10px;margin-top:10px;padding:11px 12px;border:1px solid #DCEBF1;border-radius:17px;background:#fff;box-shadow:var(--shadow);text-align:left;color:inherit;cursor:pointer}
+.home-learning-action>span{width:38px;height:38px;display:grid;place-items:center;border-radius:13px;background:#FFF3D8;font-size:19px}
+.home-learning-action div{flex:1}.home-learning-action small,.home-learning-action b{display:block}.home-learning-action small{font-size:8px;font-weight:900;letter-spacing:.1em;color:#7C9994}.home-learning-action b{font-size:12px;margin-top:2px}.home-learning-action strong{font-size:17px;color:#7AA29C}
+.home-gifts{margin-top:10px!important}.home-gifts .section-title{margin-bottom:8px}.home-tip{margin-top:10px!important}
+@media(max-width:380px){.home-greeting h1{font-size:21px}.cat-hero{min-height:158px;padding-left:13px}.cat-hero-copy{width:69%}.cat-hero h2{font-size:18px}.cat-hero-mascot{width:36%}.cat-hero-action{font-size:10px!important}.home-world-card{min-height:101px;padding:9px}.home-world-card .world-icon{width:38px;height:38px;font-size:22px}}
