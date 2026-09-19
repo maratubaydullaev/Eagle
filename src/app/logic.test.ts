@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { lessons, worlds } from '../content/content'
-import { learning, repetition, storage, ageAdaptation } from '../services/core'
+import { learning, repetition, storage, ageAdaptation, gradeForAge } from '../services/core'
 
 describe('POCHEMUЧКА MVP content', () => {
   it('has 13 MVP lessons', () => expect(lessons).toHaveLength(13))
@@ -51,6 +51,14 @@ describe('POCHEMUЧКА MVP content', () => {
     expect((activity.data as any).pairs).toEqual([['Север', 'North'], ['Юг', 'South'], ['Восток', 'East'], ['Запад', 'West']])
   })
   it('every lesson has at least two activities', () => expect(lessons.every(l => l.steps.length >= 2)).toBe(true))
+  it('maps school ages to the agreed grades', () => {
+    expect(gradeForAge(6)).toBe(1)
+    expect(gradeForAge(7)).toBe(1)
+    expect(gradeForAge(8)).toBe(2)
+    expect(gradeForAge(9)).toBe(3)
+    expect(gradeForAge(10)).toBe(3)
+  })
+
   it('age adaptation uses the agreed quiz timers', () => { expect(ageAdaptation.timerSeconds(6)).toBe(20); expect(ageAdaptation.timerSeconds(8)).toBe(17); expect(ageAdaptation.timerSeconds(10)).toBe(15) })
   it('completed lessons award points without farming on replay', () => {
     const state: any = { profile: { id: 'p', age: 7 }, progress: {}, activityMastery: {}, xp: 0, stars: 0 }
