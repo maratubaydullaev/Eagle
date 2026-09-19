@@ -14,9 +14,11 @@ const json = (body: unknown, status = 200) =>
   })
 
 async function hmac(key: Uint8Array, message: string) {
+  const keyBuffer = new ArrayBuffer(key.byteLength)
+  new Uint8Array(keyBuffer).set(key)
   const cryptoKey = await crypto.subtle.importKey(
     'raw',
-    key,
+    keyBuffer,
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign'],
