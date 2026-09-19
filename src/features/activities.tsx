@@ -80,7 +80,7 @@ export function DragDropActivity({ activity, onResult, onAttempt }: { activity: 
   }
 
   return <div className="activity">
-    <h2>{activity.instructions.replace('Перетащи', 'Подбери')}</h2>
+    <h2>Подбери пару: выбери животное, затем его место.</h2>
     <div className="drag-items">
       {d.items.map((item: string) =>
         <button
