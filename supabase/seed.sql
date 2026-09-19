@@ -3,13 +3,15 @@ insert into worlds(id,title,description,icon,order_index,is_active) values
 ('world','Мир','Узнаём, как устроен мир вокруг нас.','🌍',1,true),
 ('math','Математика','Считаем, сравниваем и решаем задачи.','🔢',2,true),
 ('animals','Животные','Исследуем удивительный мир животных.','🐾',3,true),
+('languages','Языки','Играем со словами и учим русский, английский и узбекский языки.','🔤',4,true),
 ('space','Космос','Скоро откроем новые космические уроки.','🚀',4,false)
 on conflict(id) do update set title=excluded.title,description=excluded.description,icon=excluded.icon,order_index=excluded.order_index,is_active=excluded.is_active;
 
 insert into topics(id,world_id,title,description,order_index) values
 ('world-basics','world','Мир вокруг нас','Природа, безопасность и ориентирование.',1),
 ('math-basics','math','Числа и действия','Счёт, сложение, умножение и деление.',1),
-('animals-basics','animals','Знакомство с животными','Особенности животных и их детёнышей.',1)
+('animals-basics','animals','Знакомство с животными','Особенности животных и их детёнышей.',1),
+('languages-basics','languages','Русский, английский и узбекский','Слова, переводы и простые языковые задания.',1)
 on conflict(id) do update set world_id=excluded.world_id,title=excluded.title,description=excluded.description,order_index=excluded.order_index;
 
 insert into lessons(id,topic_id,title,description,age_min,age_max,difficulty,learning_goal,order_index,is_active) values
@@ -23,6 +25,12 @@ insert into lessons(id,topic_id,title,description,age_min,age_max,difficulty,lea
 ('animals-cats-001','animals-basics','Кошки','Узнаём особенности домашних кошек.',6,10,1,'["узнать основные особенности кошек"]',1,true),
 ('animals-habitat-001','animals-basics','Где живут животные?','Сравниваем разные места обитания.',6,10,1,'["связывать животных со средой обитания"]',2,true),
 ('animals-facts-001','animals-basics','Животные-рекордсмены','Несколько удивительных фактов.',7,10,2,'["узнать несколько фактов о животных"]',3,true)
+on conflict(id) do update set topic_id=excluded.topic_id,title=excluded.title,description=excluded.description,age_min=excluded.age_min,age_max=excluded.age_max,difficulty=excluded.difficulty,learning_goal=excluded.learning_goal,order_index=excluded.order_index,is_active=excluded.is_active;
+
+insert into lessons(id,topic_id,title,description,age_min,age_max,difficulty,learning_goal,order_index,is_active) values
+('lang-russian-001','languages-basics','Русский язык','Учимся замечать слова, буквы и простые правила русского языка.',6,10,1,'["закрепить базовые знания русского языка"]',1,true),
+('lang-english-001','languages-basics','English — Английский язык','Учимся узнавать простые английские слова и переводы.',6,10,1,'["понимать простые английские слова"]',2,true),
+('lang-uzbek-001','languages-basics','O‘zbek tili — Узбекский язык','Учимся узнавать простые слова на узбекском языке.',6,10,1,'["понимать простые узбекские слова"]',3,true)
 on conflict(id) do update set topic_id=excluded.topic_id,title=excluded.title,description=excluded.description,age_min=excluded.age_min,age_max=excluded.age_max,difficulty=excluded.difficulty,learning_goal=excluded.learning_goal,order_index=excluded.order_index,is_active=excluded.is_active;
 
 insert into activities(id,lesson_id,type,order_index,content,config) values
@@ -46,4 +54,10 @@ insert into activities(id,lesson_id,type,order_index,content,config) values
 ('a2b','animals-habitat-001','drag_drop',2,'{"items":["Верблюд","Дельфин","Лев"],"targets":["Пустыня","Море","Саванна"],"correct":["Верблюд","Дельфин","Лев"]}','{"xp":10}'),
 ('a3a','animals-facts-001','quiz',1,'{"question":"Какое животное самое высокое на суше?","answers":[{"id":"0","text":"Жираф"},{"id":"1","text":"Слон"},{"id":"2","text":"Лошадь"}],"correctAnswerId":"0","explanation":"Жираф — самое высокое современное наземное животное."}','{"xp":10}'),
 ('a3b','animals-facts-001','quiz',2,'{"question":"Что дают пчёлы?","answers":[{"id":"0","text":"Мёд"},{"id":"1","text":"Молоко"},{"id":"2","text":"Шерсть"}],"correctAnswerId":"0","explanation":"Пчёлы производят мёд из нектара."}','{"xp":10}')
+('lru1a','lang-russian-001','quiz',1,'{"question":"Сколько гласных букв в русском алфавите?","answers":[{"id":"0","text":"10"},{"id":"1","text":"5"},{"id":"2","text":"7"}],"correctAnswerId":"0","explanation":"В русском алфавите 10 гласных букв."}','{"xp":10}'),
+('lru1b','lang-russian-001','quiz',2,'{"question":"Какое слово написано правильно?","answers":[{"id":"0","text":"Машина"},{"id":"1","text":"Мошина"},{"id":"2","text":"Машына"}],"correctAnswerId":"0","explanation":"Правильно: машина."}','{"xp":10}'),
+('len1a','lang-english-001','quiz',1,'{"question":"Как переводится слово “cat”?","answers":[{"id":"0","text":"Кошка"},{"id":"1","text":"Собака"},{"id":"2","text":"Лошадь"}],"correctAnswerId":"0","explanation":"Cat — это кошка."}','{"xp":10}'),
+('len1b','lang-english-001','quiz',2,'{"question":"Как по-английски “книга”?","answers":[{"id":"0","text":"Book"},{"id":"1","text":"Tree"},{"id":"2","text":"House"}],"correctAnswerId":"0","explanation":"Book — это книга."}','{"xp":10}'),
+('luz1a','lang-uzbek-001','quiz',1,'{"question":"Как переводится “salom”?","answers":[{"id":"0","text":"Привет"},{"id":"1","text":"Спасибо"},{"id":"2","text":"До свидания"}],"correctAnswerId":"0","explanation":"Salom — это привет."}','{"xp":10}'),
+('luz1b','lang-uzbek-001','quiz',2,'{"question":"Как переводится “kitob”?","answers":[{"id":"0","text":"Книга"},{"id":"1","text":"Дом"},{"id":"2","text":"Вода"}],"correctAnswerId":"0","explanation":"Kitob — это книга."}','{"xp":10}')
 on conflict(id) do update set lesson_id=excluded.lesson_id,type=excluded.type,order_index=excluded.order_index,content=excluded.content,config=excluded.config;
