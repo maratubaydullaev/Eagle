@@ -21,8 +21,11 @@ const answerShift = (id: string): number => [...id].reduce((sum, char) => sum + 
 const quiz = (id: string, question: string, correct: string, distractors: string[], explanation: string): Activity => {
   const baseAnswers = [correct, ...distractors]
   const shift = answerShift(id)
-  const answers = baseAnswers.map((_, index) => baseAnswers[(index + shift) % baseAnswers.length]).map((text, index) => ({ id: String(index), text }))
-  const correctAnswerId = String((baseAnswers.length - shift) % baseAnswers.length)
+  const answerIds = ['0', '1', '2'] as const
+  const answers = baseAnswers
+    .map((_, index) => baseAnswers[(index + shift) % baseAnswers.length])
+    .map((text, index) => ({ id: answerIds[index], text }))
+  const correctAnswerId = answerIds[(baseAnswers.length - shift) % baseAnswers.length]
   return { id, type: 'quiz', title: 'Проверь себя', instructions: 'Выбери правильный ответ', data: { question, answers, correctAnswerId, explanation }, reward: { xp: 10 } }
 }
 const rows = (prefix: string, list: Row[]): Activity[] => list.map(([id, question, answer, distractors, explanation]) => quiz(prefix + id, question, answer, distractors, explanation))
