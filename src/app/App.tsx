@@ -1,111 +1,54 @@
-import{useEffect,useRef,useState}from'react';import type{ReactNode}from'react';import type{AppState,ChildProfile,Lesson}from'./types';import{storage,learning,audio,telegram,ageAdaptation,gradeForAge}from'../services/core';import{backend}from'../services/backend';import{lessons,worlds,topics}from'../content/content';import{Mascot}from'../components/Mascot';import{QuizActivity,DragDropActivity,MatchingActivity,SortingActivity}from'../features/activities';
-function Shell({children,state,goHome,nav,route}:{children:ReactNode;state:AppState;goHome:()=>void;nav:(r:string)=>void;route:string}){return <main className="app"><header className="top"><button className="brand" onClick={goHome}><Mascot mood="happy"/><span><b>ПОЧЕМУЧКИ</b><small>Учимся легко и с интересом</small></span></button><div className="header-actions"><button className="icon-btn" onClick={()=>{audio.toggle();storage.save(state);location.reload()}} aria-label="Звук">{audio.enabled?'🔊':'🔇'}</button></div></header>{children}<BottomNav nav={nav} route={route}/></main>}
+import{useEffect,useRef,useState}from'react';import type{ReactNode}from'react';import type{AppState,ChildProfile,Lesson}from'./types';import{storage,learning,audio,telegram,ageAdaptation,gradeForAge}from'../services/core';import{backend}from'../services/backend';import{lessons,worlds,topics}from'../content/content';import{Mascot}from'../components/Mascot';import{DoctorMascot}from'../components/DoctorMascot';import{QuizActivity,DragDropActivity,MatchingActivity,SortingActivity}from'../features/activities';
+function Shell({children,state,goHome,nav,route}:{children:ReactNode;state:AppState;goHome:()=>void;nav:(r:string)=>void;route:string}){return <main className="app">{children}<BottomNav nav={nav} route={route}/></main>}
 
 function Profile({onDone}:{onDone:(p:ChildProfile)=>void}){const[n,setN]=useState(telegram.firstName());const[a,setA]=useState(6);function save(){if(!n.trim())return;const now=new Date().toISOString();onDone({id:crypto.randomUUID(),name:n.trim(),age:a,grade:gradeForAge(a),avatar:'🐱',createdAt:now,updatedAt:now})}return <section className="screen center"><div className="hero"><Mascot mood="happy"/><h1>Привет! Я Котёнок-Почемучка</h1><p>Будем узнавать новое, играть и открывать мир.</p></div><label>Как тебя зовут?<input value={n} onChange={e=>setN(e.target.value.slice(0,20))} placeholder="Например, Амина" autoFocus/></label><label>Сколько тебе лет?</label><div className="chips">{[4,5,6,7,8,9,10].map(x=><button className={a===x?'chip active':'chip'} key={x} onClick={()=>setA(x)}>{x}</button>)}</div><button className="primary" disabled={!n.trim()} onClick={save}>Начать приключение →</button></section>}
 function BottomNav({nav,route}:{nav:(r:string)=>void;route:string}){const worldsActive=route.startsWith('world:')||route.startsWith('lesson:')||route==='progress';const shopActive=route==='shop'||route==='achievements';const profileActive=route==='me'||route==='parent';return <nav className="bottom-nav" aria-label="Основная навигация"><button className={route==='home'?'active':''} onClick={()=>nav('home')}><span>⌂</span><small>Главная</small></button><button className={worldsActive?'active':''} onClick={()=>nav('progress')}><span>🌍</span><small>Миры</small></button><button className={shopActive?'active':''} onClick={()=>nav('shop')}><span>🎁</span><small>Магазин</small></button><button className={profileActive?'active':''} onClick={()=>nav('me')}><span>👤</span><small>Профиль</small></button></nav>}
 
 function ProfileMe({s,nav}:{s:AppState;nav:(r:string)=>void}){const p=s.profile!;const grade=p.grade||gradeForAge(p.age);const completed=Object.values(s.progress).filter(x=>x.status==='completed').length;const total=lessons.filter(l=>l.grade===grade).length;return <section className="me-screen"><div className="me-head"><div><p className="eyebrow">МОЙ ПРОФИЛЬ</p><h1>Привет, {p.name}! 👋</h1><p>Здесь живут твои успехи и настройки.</p></div><div className="me-avatar">{p.avatar||'🐱'}</div></div><div className="me-profile-card card"><div className="me-character"><Mascot mood="happy"/></div><div><span className="me-label">УЧЕНИК</span><h2>{p.name}</h2><p>{p.age} лет · {grade} класс</p></div></div><div className="me-stats"><div><b>{completed}</b><small>уроков</small></div><div><b>{s.xp}</b><small>баллов</small></div><div><b>{s.stars}</b><small>звёзд</small></div></div><div className="card me-progress"><div className="section-title"><div><p className="section-kicker">ТВОЙ ПУТЬ</p><h2>Учимся дальше</h2></div><b>{total?Math.round(completed/total*100):0}%</b></div><div className="progress"><i style={{width:(total?completed/total*100:0)+'%'}}/></div><button className="me-action" onClick={()=>nav('progress')}>Открыть мой прогресс <span>→</span></button></div><div className="card me-menu"><button onClick={()=>nav('progress')}><span>📚</span><div><b>Мой прогресс</b><small>Уроки, баллы и повторение</small></div><strong>→</strong></button><button onClick={()=>nav('achievements')}><span>🏆</span><div><b>Награды</b><small>Достижения и коллекция</small></div><strong>→</strong></button><button onClick={()=>nav('parent')}><span>👨‍👩‍👧</span><div><b>Для родителей</b><small>Настройки и подробности</small></div><strong>→</strong></button></div><div className="me-note"><span>💡</span><div><b>Котёнок-Почемучка рядом</b><small>Продолжай маленькими шагами — у тебя всё получится!</small></div></div></section>}
 
-function Home({ s, nav }: { s: AppState; nav: (r: string) => void }) {
-  const grade = s.profile!.grade || gradeForAge(s.profile!.age)
-  const due = Object.values(s.progress).find((p) => p.nextReviewAt && new Date(p.nextReviewAt) <= new Date())
-  const next =
-    (s.lastLessonId && s.progress[s.lastLessonId]?.status === 'in_progress'
-      ? lessons.find((l) => l.id === s.lastLessonId)
-      : due
-        ? lessons.find((l) => l.id === due.lessonId)
-        : lessons.find((l) => l.grade === grade && !s.progress[l.id])) || null
-  const completed = Object.values(s.progress).filter((p) => p.status === 'completed').length
-
-  return (
-    <section className="home home-approved">
-      <div className="home-greeting">
-        <div>
-          <p className="eyebrow">ПОЧЕМУЧКИ</p>
-          <h1>Привет, {s.profile!.name}! 👋</h1>
-          <p>Давай сегодня узнаем что-нибудь новое.</p>
-        </div>
-        <button className="home-profile-mini" onClick={() => nav('me')} aria-label="Профиль">
-          {s.profile!.avatar || '🐱'}
-        </button>
-      </div>
-
-      <div className="cat-hero card">
-        <div className="cat-hero-copy">
-          <span className="cat-badge">🐾 Котёнок-Почемучка</span>
-          <h2>{next ? 'Готов узнать новое?' : 'Ты настоящий исследователь!'}</h2>
-          <p>{next ? (s.lastLessonId === next.id ? 'Продолжим начатый урок?' : 'Я приготовил для тебя новое открытие.') : 'Все доступные уроки пройдены. Заглянем в твои достижения?'}</p>
-          {next ? (
-            <button className="primary cat-hero-action" onClick={() => nav('lesson:' + next.id)}>
-              {s.progress[next.id]?.status === 'in_progress' ? 'Продолжить урок →' : 'Начать урок →'}
-            </button>
-          ) : (
-            <button className="primary cat-hero-action" onClick={() => nav('achievements')}>Мои достижения →</button>
-          )}
-        </div>
-        <div className="cat-hero-mascot"><Mascot mood={next ? 'happy' : 'thinking'} /></div>
-      </div>
-
-      <div className="home-stat-card">
-        <button onClick={() => nav('progress')}><span>⭐</span><b>{s.xp}</b><small>баллов</small></button>
-        <div className="stat-divider" />
-        <button onClick={() => nav('progress')}><span>✨</span><b>{s.stars}</b><small>звёзд</small></button>
-        <div className="stat-divider" />
-        <button onClick={() => nav('progress')}><span>📚</span><b>{completed}</b><small>уроков</small></button>
-      </div>
-
-      <div className="section-title home-section-title">
-        <div><p className="section-kicker">ИССЛЕДУЕМ ВМЕСТЕ</p><h2>Твои миры</h2></div>
-        <button onClick={() => nav('progress')}>Весь прогресс →</button>
-      </div>
-
-      <div className="world-grid home-world-grid">
-        {worlds.filter((w) => w.isActive).map((w) => {
-          const ls = lessons.filter((l) => l.worldId === w.id && l.grade === grade)
-          if (!ls.length) return null
-          const done = ls.filter((l) => s.progress[l.id]?.status === 'completed').length
-          const width = ls.length ? done / ls.length * 100 : 0
-          return (
-            <button className="world-card home-world-card" key={w.id} onClick={() => nav('world:' + w.id)}>
-              <span className="world-icon">{w.icon}</span>
-              <div className="world-info">
-                <b>{w.title}</b>
-                <small>{done} из {ls.length} уроков</small>
-                <i><em style={{ width: width + '%' }} /></i>
-              </div>
-              <strong>→</strong>
-            </button>
-          )
-        })}
-      </div>
-
-      {next && (
-        <button className="home-learning-action" onClick={() => nav('lesson:' + next.id)}>
-          <span>🎯</span>
-          <div><small>СЛЕДУЮЩИЙ ШАГ</small><b>{next.title}</b></div>
+function Home({s,nav}:{s:AppState;nav:(r:string)=>void}) {
+  const grade=s.profile!.grade||gradeForAge(s.profile!.age)
+  const completed=Object.values(s.progress).filter(p=>p.status==='completed').length
+  const gradeLessons=lessons.filter(l=>l.grade===grade)
+  const next=(s.lastLessonId&&s.progress[s.lastLessonId]?.status==='in_progress'?lessons.find(l=>l.id===s.lastLessonId):lessons.find(l=>l.grade===grade&&s.progress[l.id]?.status!=='completed'))||null
+  const visibleWorlds=worlds.filter(w=>w.isActive).slice(0,4)
+  return <section className="home home-approved">
+    <div className="home-greeting">
+      <div><h1>Привет, {s.profile!.name}! 👋</h1><p>Продолжай учиться — тебя ждут новые открытия!</p></div>
+      <button className="home-profile-mini" onClick={()=>nav('me')} aria-label="Уведомления">🔔</button>
+    </div>
+    <div className="cat-hero card">
+      <div className="cat-hero-copy"><h2>Я проверю твои знания</h2></div>
+      <div className="cat-hero-mascot"><DoctorMascot/></div>
+    </div>
+    <div className="home-stat-card">
+      <button onClick={()=>nav('progress')}><span>🪙</span><b>{s.xp}</b><small>Баллы</small></button>
+      <div className="stat-divider"/>
+      <button onClick={()=>nav('progress')}><span>⭐</span><b>{s.stars}</b><small>Звёзды</small></button>
+      <div className="stat-divider"/>
+      <button onClick={()=>nav('progress')}><span>📚</span><b>{completed}/{gradeLessons.length}</b><small>Уроков</small></button>
+    </div>
+    <div className="section-title home-section-title">
+      <div><h2>Твои миры</h2></div><button onClick={()=>nav('progress')}>Все миры →</button>
+    </div>
+    <div className="world-grid home-world-grid">
+      {visibleWorlds.map(w=>{
+        const ls=lessons.filter(l=>l.worldId===w.id&&l.grade===grade)
+        const done=ls.filter(l=>s.progress[l.id]?.status==='completed').length
+        const width=ls.length?done/ls.length*100:0
+        return <button className="world-card home-world-card" key={w.id} onClick={()=>nav('world:'+w.id)}>
+          <span className="world-icon">{w.icon}</span>
+          <div className="world-info"><b>{w.title}</b><small>{done}/{ls.length} уроков</small><i><em style={{width:width+'%'}}/></i></div>
           <strong>→</strong>
         </button>
-      )}
-
-      {s.purchasedGifts.length > 0 && (
-        <div className="card my-gifts home-gifts">
-          <div className="section-title">
-            <h2>🎁 Мои подарки</h2>
-            <button onClick={() => nav('shop')}>Все →</button>
-          </div>
-          <div className="my-gifts-list">
-            {s.purchasedGifts.map((id) => (
-              <span key={id}>
-                {id === 'sticker' ? '🎁 Набор наклеек' : id === 'avatar' ? '🧢 Новый аватар' : '🪄 Волшебный сундук'}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="home-tip"><span>💡</span><div><b>Совет Котёнка-Почемучки</b><small>Если задание кажется сложным — остановись, прочитай вопрос ещё раз и попробуй спокойно.</small></div></div>
-    </section>
-  )
+      })}
+    </div>
+    <button className="home-learning-action" onClick={()=>nav(next?'lesson:'+next.id:'progress')} aria-label="Быстрые действия">
+      <span>📊</span><div><small>СЛЕДУЮЩИЙ ШАГ</small><b>{next?.title||'Мой прогресс'}</b></div><strong>→</strong>
+    </button>
+    <div className="home-tip"><span>💡</span><div><b>Вопросы сегодня — большие знания завтра!</b><small>Исследуй, задавай вопросы и открывай мир каждый день.</small></div></div>
+    {s.purchasedGifts.length>0&&<div className="card my-gifts home-gifts"><div className="section-title"><h2>🎁 Мои подарки</h2><button onClick={()=>nav('shop')}>Все →</button></div><div className="my-gifts-list">{s.purchasedGifts.map(id=><span key={id}>{id==='sticker'?'🎁 Набор наклеек':id==='avatar'?'🧢 Новый аватар':'🪄 Волшебный сундук'}</span>)}</div></div>}
+  </section>
 }
 
 function World({s,id,nav}:{s:AppState;id:string;nav:(r:string)=>void}){const w=worlds.find(x=>x.id===id)!;const grade=s.profile!.grade||gradeForAge(s.profile!.age);const ls=lessons.filter(l=>l.worldId===id&&l.grade===grade).sort((a,b)=>a.orderIndex-b.orderIndex);const done=ls.filter(l=>s.progress[l.id]?.status==='completed').length;const active=ls.find(l=>s.progress[l.id]?.status==='in_progress')||ls.find(l=>s.progress[l.id]?.status!=='completed');const percent=ls.length?Math.round(done/ls.length*100):0;return <section className="world-screen"><button className="back" onClick={()=>nav('home')}>← Назад</button><div className="world-hero card"><div className="world-hero-copy"><span className="world-kicker">МИР {grade} КЛАССА</span><div className="world-title-row"><span className="world-big-icon">{w.icon}</span><div><h1>{w.title}</h1><p>{w.description}</p></div></div><div className="world-progress-line"><div><span>Твой прогресс</span><b>{done} из {ls.length} уроков</b></div><strong>{percent}%</strong></div><div className="progress"><i style={{width:percent+'%'}}/></div></div><Mascot mood={active?'happy':'thinking'}/></div><div className="world-mission card">{active?<><span>✨ СЛЕДУЮЩИЙ ШАГ</span><div><div><b>{active.title}</b><small>{s.progress[active.id]?.status==='in_progress'?'Урок уже начат':'Готов открыть новую тему?'}</small></div><button onClick={()=>nav('lesson:'+active.id)}>{s.progress[active.id]?.status==='in_progress'?'Продолжить →':'Начать →'}</button></div></>:<><span>🏆 МИССИЯ ВЫПОЛНЕНА</span><div><b>Все уроки пройдены!</b><small>Отличная работа. Загляни в другие миры.</small><button onClick={()=>nav('home')}>К мирам →</button></div></>}</div>{topics.filter(t=>t.worldId===id).map(t=><div className="world-topic card" key={t.id}><span>💡</span><div><p className="section-kicker">ТЕМА</p><h2>{t.title}</h2><p>{t.description}</p></div></div>)}<div className="world-lessons-heading"><div><p className="section-kicker">ПУТЬ ОБУЧЕНИЯ</p><h2>Уроки</h2></div><span>{done}/{ls.length}</span></div><div className="lesson-list">{ls.map((l,index)=>{const st=learning.status(s,l);const retryLocked=st==='completed_locked';const completed=s.progress[l.id]?.status==='completed';return <button className={'lesson-row '+st} disabled={st==='locked'||retryLocked} key={l.id} onClick={()=>nav('lesson:'+l.id)}><span className="lesson-index">{completed?'⭐':retryLocked?'⏳':st==='locked'?'🔒':st==='in_progress'?'▶️':String(index+1).padStart(2,'0')}</span><div><b>{l.title}</b><small>{retryLocked?'Повторить можно завтра':l.description}</small></div><strong>{completed?(retryLocked?'Завтра':'Пройдено'):st==='locked'?'Закрыт':st==='in_progress'?'Продолжить →':'Начать →'}</strong></button>})}</div></section>}function Lesson({s,lesson,done,back,sync}:{s:AppState;lesson:Lesson;done:(s:AppState)=>void;back:()=>void;sync:(s:AppState)=>void}){const[started]=useState(()=>learning.start(s,lesson.id));const[brief,setBrief]=useState(true);const[step,setStep]=useState(0);const[completedResult,setCompletedResult]=useState<{score:number;total:number;state:AppState}|null>(null);const pendingAttempts=useRef<Promise<unknown>[]>([]);useEffect(()=>{sync(started)},[started,sync]);const[score,setScore]=useState(0);const act=lesson.steps[step];const timerSeconds=ageAdaptation.timerSeconds(s.profile!.age);useEffect(()=>{void backend.saveProgress(started.progress[lesson.id]);void backend.event('lesson_started',{lessonId:lesson.id})},[started,lesson.id]);async function result(ok:boolean){const ns=score+(ok?1:0);setScore(ns);if(step<lesson.steps.length-1){setStep(x=>x+1);return}try{await Promise.allSettled(pendingAttempts.current)}catch{}const current=storage.load();let next:AppState;try{next=learning.complete(current,lesson,ns)}catch{next=storage.load();const fallback=current.progress[lesson.id];if(fallback){next.progress[lesson.id]={...fallback,status:'completed',score:ns,mastery:Math.max(0,Math.min(1,ns/Math.max(1,lesson.steps.length))),attempts:(fallback.attempts||0)+1,completedAt:new Date().toISOString()};storage.save(next)}}sync(next);void backend.saveProgress(next.progress[lesson.id]).catch(()=>{});void backend.event('lesson_completed',{lessonId:lesson.id,score:ns,total:lesson.steps.length,mastery:next.progress[lesson.id]?.mastery??0});setCompletedResult({score:ns,total:lesson.steps.length,state:next})}function onAttempt(ok:boolean,answer:unknown,timeSpent?:number){try{const n=storage.activityMastery(act.id,ok);const request=backend.saveActivityAttempt({profileId:n.profile!.id,activityId:act.id,isCorrect:ok,answer,timeSpent}).catch(()=>{});pendingAttempts.current.push(request)}catch{}}if(brief)return <section><button className="back" onClick={back}>← Назад</button><div className="lesson-brief card"><span className="lesson-brief-icon">💡</span><p className="eyebrow">ПЕРЕД НАЧАЛОМ</p><h1>{lesson.title}</h1><p>{lesson.description}</p><div className="lesson-goal"><b>🎯 Цель урока</b><span>{lesson.learningGoal[0]}</span></div><div className="lesson-plan"><b>Как будем учиться</b><span>1. Познакомимся с вопросами</span><span>2. Подумай и выбери ответ</span><span>3. Получи объяснение и награду</span></div><button className="primary" type="button" onClick={()=>setBrief(false)}>Начать задания →</button></div></section>;
