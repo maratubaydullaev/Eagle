@@ -21,9 +21,23 @@ export function Mascot({ mood = 'normal' }: { mood?: 'normal' | 'happy' | 'sad' 
       <ellipse cx="78" cy={eyeY - 1} rx="1.5" ry="1.5" fill="#fff" />
       <path d={mouth} stroke="#7A3E2A" strokeWidth="2.5" fill="none" strokeLinecap="round" />
       <circle cx="60" cy="68" r="3" fill="#E86C4A" />
+
+      {/* Doctor head mirror */}
       <circle cx="60" cy="31" r="10" fill="#E9C46A" stroke="#8C6A2D" strokeWidth="2" />
       <path d="M60 21 L60 12" stroke="#8C6A2D" strokeWidth="3" strokeLinecap="round" />
       <circle cx="60" cy="10" r="3" fill="#8C6A2D" />
+
+      {/* Doctor coat and badge */}
+      <path d="M28 78 Q24 88 30 101 Q43 111 60 112 Q77 111 90 101 Q96 88 92 78 L82 83 Q75 91 60 94 Q45 91 38 83 Z" fill="#F7FCFF" />
+      <circle cx="78" cy="91" r="5" fill="#4C9DFF" stroke="#fff" strokeWidth="2" />
+      <path d="M78 88 L78 94 M75 91 L81 91" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+
+      {/* Stethoscope */}
+      <path d="M39 82 Q34 95 43 101 Q52 107 60 98" fill="none" stroke="#4C9DFF" strokeWidth="3" strokeLinecap="round" />
+      <path d="M81 82 Q86 95 77 101 Q68 107 60 98" fill="none" stroke="#4C9DFF" strokeWidth="3" strokeLinecap="round" />
+      <circle cx="60" cy="99" r="5" fill="#DCEEFF" stroke="#3B8FE8" strokeWidth="2" />
+
+      {/* Paws */}
       <path d="M28 58 Q19 69 27 77" fill="none" stroke="#F59B5B" strokeWidth="7" strokeLinecap="round" />
       <path d="M92 58 Q101 69 93 77" fill="none" stroke="#F59B5B" strokeWidth="7" strokeLinecap="round" />
     </svg>
