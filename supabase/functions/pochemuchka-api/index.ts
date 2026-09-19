@@ -251,7 +251,7 @@ serve(async (req) => {
 
       const { data: progressRows, error: progressError } = await admin
         .from('lesson_progress')
-        .select('profile_id,xp,status')
+        .select('profile_id,xp,status,lesson_id')
         .eq('status', 'completed')
       if (progressError) throw progressError
 
