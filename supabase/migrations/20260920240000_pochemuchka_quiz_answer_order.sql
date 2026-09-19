@@ -55,6 +55,9 @@ begin
     and (
       jsonb_array_length(coalesce(a.content->'answers','[]'::jsonb)) <> 3
       or a.content->>'correctAnswerId' not in ('0','1','2')
+      or a.content->'answers'->0->>'id' <> '0'
+      or a.content->'answers'->1->>'id' <> '1'
+      or a.content->'answers'->2->>'id' <> '2'
       or a.content->'answers'->(a.content->>'correctAnswerId')::int->>'text' is null
     );
 
