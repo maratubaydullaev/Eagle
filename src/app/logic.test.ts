@@ -68,8 +68,8 @@ describe('POCHEMUЧКА curriculum', () => {
     expect(Math.round((perfect.getTime() - base.getTime()) / 86400000)).toBe(7)
   })
   it('unlocking starts with the first lesson of a world', () => {
-    const state: any = { profile: { age: 7 }, progress: {}, activityMastery: {}, xp: 0, stars: 0 }
-    expect(learning.status(state, lessons.find(l => l.worldId === 'world')!)).toBe('available')
+    const state: any = { profile: { age: 7, grade: 2 }, progress: {}, activityMastery: {}, xp: 0, stars: 0 }
+    expect(learning.status(state, lessons.find(l => l.worldId === 'world' && l.grade === 2)!)).toBe('available')
   })
   it('storage tolerates missing browser localStorage', () => {
     expect(storage.load().progress).toBeDefined()
