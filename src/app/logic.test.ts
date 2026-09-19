@@ -15,6 +15,11 @@ describe('POCHEMUЧКА MVP content', () => {
       expect(activity?.type).toBe('matching')
     }
   })
+  it('compass matching uses the requested labels and instruction', () => {
+    const activity = lessons.flatMap(l => l.steps).find(a => a.id === 'w2b')!
+    expect(activity.instructions).toBe('Подбери пару: выбери сторону света, затем её обозначение.')
+    expect((activity.data as any).pairs).toEqual([['Север', 'Nord'], ['Юг', 'S'], ['Восток', 'E'], ['Запад', 'W']])
+  })
   it('every lesson has at least two activities', () => expect(lessons.every(l => l.steps.length >= 2)).toBe(true))
   it('age adaptation uses the agreed quiz timers', () => { expect(ageAdaptation.timerSeconds(6)).toBe(20); expect(ageAdaptation.timerSeconds(8)).toBe(17); expect(ageAdaptation.timerSeconds(10)).toBe(15) })
   it('completed lessons cannot farm XP on replay', () => {
