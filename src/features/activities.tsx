@@ -21,7 +21,6 @@ export function QuizActivity({ activity, onResult, onAttempt, timerSeconds = 15 
   useEffect(() => {
     if (remaining !== 0 || answer) return
     setAnswer('__timeout__')
-    window.setTimeout(() => onResult(false), 550)
     reportAttempt(onAttempt, false, null, Date.now() - startedAt)
     try { audio.wrong() } catch {}
     try { telegram.haptic('error') } catch {}
@@ -30,9 +29,6 @@ export function QuizActivity({ activity, onResult, onAttempt, timerSeconds = 15 
     if (answer) return
     setAnswer(id)
     const ok = id === d.correctAnswerId
-    // Schedule the lesson transition before attempt persistence. A synchronous
-    // storage/WebView failure must never be able to block the transition.
-    window.setTimeout(() => onResult(ok), 550)
     reportAttempt(onAttempt, ok, id, Date.now() - startedAt)
     try { ok ? audio.correct() : audio.wrong() } catch {}
     try { telegram.haptic(ok ? 'success' : 'error') } catch {}
@@ -41,7 +37,10 @@ export function QuizActivity({ activity, onResult, onAttempt, timerSeconds = 15 
     <div className="activity-meta"><span>⏱ {remaining} сек.</span></div>
     <h2>{d.question}</h2>
     <div className="answers">{d.answers.map((x: any) => <button key={x.id} disabled={!!answer} className={answer ? (x.id === d.correctAnswerId ? 'correct' : x.id === answer ? 'wrong' : '') : 'answer'} onClick={() => pick(x.id)}>{x.text}</button>)}</div>
-    {answer && <div className={answer === d.correctAnswerId ? 'feedback good' : 'feedback bad'} role="status">{answer === '__timeout__' ? 'Время вышло ⏱️' : answer === d.correctAnswerId ? 'Отлично! 🎉' : 'Почти! 💡 ' + d.explanation}</div>}
+    {answer && <>
+      <div className={answer === d.correctAnswerId ? 'feedback good' : 'feedback bad'} role="status">{answer === '__timeout__' ? 'Время вышло ⏱️' : answer === d.correctAnswerId ? 'Отлично! 🎉' : 'Почти! 💡 ' + d.explanation}</div>
+      <button className="primary next-step" type="button" onClick={() => onResult(answer === d.correctAnswerId)}>{'Следующий вопрос →'}</button>
+    </>}
   </div>
 }
 
