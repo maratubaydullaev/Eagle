@@ -7,6 +7,36 @@ describe('POCHEMUЧКА MVP content', () => {
   it('has the MVP world lesson distribution', () => expect(Object.fromEntries(['world','math','animals'].map(id => [id, lessons.filter(l => l.worldId === id).length]))).toEqual({ world: 3, math: 4, animals: 3 }))
   it('has three active MVP worlds', () => expect(worlds.filter(w => w.isActive).map(w => w.id)).toEqual(['world', 'math', 'animals']))
   it('lesson ids are unique', () => expect(new Set(lessons.map(l => l.id)).size).toBe(10))
+  it('locks a lesson with any mistake until the next day', () => {
+    const completedAt = new Date('2026-09-19T10:00:00Z').toISOString()
+    const progress = {
+      id: 'p1',
+      profileId: 'child',
+      lessonId: 'test',
+      status: 'completed',
+      score: 1,
+      mastery: 0.5,
+      attempts: 1,
+      completedAt,
+    } as any
+    const nextReview = new Date(repetition.nextDate(progress))
+    expect(nextReview.toISOString()).toBe(new Date('2026-09-20T10:00:00Z').toISOString())
+  })
+
+  it('allows a perfect lesson to be reviewed later', () => {
+    const progress = {
+      id: 'p2',
+      profileId: 'child',
+      lessonId: 'test',
+      status: 'completed',
+      score: 2,
+      mastery: 1,
+      attempts: 1,
+      completedAt: '2026-09-19T10:00:00Z',
+    } as any
+    expect(repetition.nextDate(progress).toISOString()).toBe('2026-09-26T10:00:00.000Z')
+  })
+
   it('content activities use supported MVP types', () => expect(lessons.flatMap(l => l.steps).every(a => ['quiz', 'drag_drop', 'matching'].includes(a.type))).toBe(true))
   it('matching-style MVP activities use the pair engine', () => {
     for (const id of ['w2b', 'a1b', 'a2b']) {
