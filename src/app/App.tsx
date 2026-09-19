@@ -1,4 +1,4 @@
-import{useEffect,useRef,useState}from'react';import type{ReactNode}from'react';import type{AppState,ChildProfile,Lesson}from'./types';import{storage,learning,audio,telegram,ageAdaptation,gradeForAge}from'../services/core';import{backend}from'../services/backend';import{lessons,worlds,topics}from'../content/content';import{Mascot}from'../components/Mascot';import{DoctorMascot,ForestScene}from'../components/DoctorMascot';import{QuizActivity,DragDropActivity,MatchingActivity,SortingActivity}from'../features/activities';
+import{useEffect,useRef,useState}from'react';import type{ReactNode}from'react';import type{AppState,ChildProfile,Lesson}from'./types';import{storage,learning,audio,telegram,ageAdaptation,gradeForAge}from'../services/core';import{backend}from'../services/backend';import{lessons,worlds,topics}from'../content/content';import{Mascot}from'../components/Mascot';import{DoctorMascot}from'../components/DoctorMascot';import{QuizActivity,DragDropActivity,MatchingActivity,SortingActivity}from'../features/activities';
 function Shell({children,state,goHome,nav,route}:{children:ReactNode;state:AppState;goHome:()=>void;nav:(r:string)=>void;route:string}){return <main className="app">{children}<BottomNav nav={nav} route={route}/></main>}
 
 function Profile({onDone}:{onDone:(p:ChildProfile)=>void}){const[n,setN]=useState(telegram.firstName());const[a,setA]=useState(6);function save(){if(!n.trim())return;const now=new Date().toISOString();onDone({id:crypto.randomUUID(),name:n.trim(),age:a,grade:gradeForAge(a),avatar:'🐱',createdAt:now,updatedAt:now})}return <section className="screen center"><div className="hero"><Mascot mood="happy"/><h1>Привет! Я Котёнок-Почемучка</h1><p>Будем узнавать новое, играть и открывать мир.</p></div><label>Как тебя зовут?<input value={n} onChange={e=>setN(e.target.value.slice(0,20))} placeholder="Например, Амина" autoFocus/></label><label>Сколько тебе лет?</label><div className="chips">{[4,5,6,7,8,9,10].map(x=><button className={a===x?'chip active':'chip'} key={x} onClick={()=>setA(x)}>{x}</button>)}</div><button className="primary" disabled={!n.trim()} onClick={save}>Начать приключение →</button></section>}
@@ -13,16 +13,12 @@ function Home({s,nav}:{s:AppState;nav:(r:string)=>void}) {
   const next=(s.lastLessonId&&s.progress[s.lastLessonId]?.status==='in_progress'?lessons.find(l=>l.id===s.lastLessonId):lessons.find(l=>l.grade===grade&&s.progress[l.id]?.status!=='completed'))||null
   const visibleWorlds=worlds.filter(w=>w.isActive).slice(0,4)
   return <section className="home home-approved">
-    <div className="home-greeting">
-      <div><h1>Привет, {s.profile!.name}!</h1><p>Продолжай учиться — тебя ждут новые открытия!</p></div>
-    </div>
-
+    <div className="home-greeting"><h1>Привет, {s.profile!.name}!</h1><p>Продолжай учиться — тебя ждут новые открытия!</p></div>
     <div className="cat-hero card">
-      <ForestScene/>
-      <div className="cat-hero-copy"><div className="cat-speech">Я проверю<br/>твои знания<br/>и помогу узнать<br/>много нового!</div></div>
-      <div className="cat-hero-mascot"><DoctorMascot/></div>
+      <div className="forest-art" aria-hidden="true"><span className="sun"/><span className="tree t1"/><span className="tree t2"/><span className="tree t3"/><span className="hill"/></div>
+      <div className="cat-hero-copy"><div className="cat-speech">Я проверю<br/>твои знания<br/>и помогу узнать<br/>много нового!<span>🐾</span></div></div>
+      <div className="cat-hero-mascot"><img src="/Eagle/images/doctor-main.webp" alt="Котёнок-Доктор" className="doctor-asset"/></div>
     </div>
-
     <div className="home-stat-card">
       <button onClick={()=>nav('progress')}><span className="coin-icon"><i>★</i></span><b>{s.xp}</b><small>Баллы</small></button>
       <div className="stat-divider"/>
@@ -30,35 +26,26 @@ function Home({s,nav}:{s:AppState;nav:(r:string)=>void}) {
       <div className="stat-divider"/>
       <button onClick={()=>nav('progress')}><span>📚</span><b>{completed}/{gradeLessons.length}</b><small>Уроков</small></button>
     </div>
-
-    <div className="section-title home-section-title">
-      <div><h2>Твои миры</h2></div><button onClick={()=>nav('progress')}>Все миры →</button>
-    </div>
-
+    <div className="section-title home-section-title"><div><h2>Твои миры</h2></div><button onClick={()=>nav('progress')}>Все миры →</button></div>
     <div className="world-grid home-world-grid">
       {visibleWorlds.map(w=>{
         const ls=lessons.filter(l=>l.worldId===w.id&&l.grade===grade)
         const done=ls.filter(l=>s.progress[l.id]?.status==='completed').length
         const width=ls.length?done/ls.length*100:0
         return <button className="world-card home-world-card" key={w.id} onClick={()=>nav('world:'+w.id)}>
-          <span className="world-icon">{w.icon}</span>
-          <div className="world-info"><b>{w.title}</b><small>{done}/{ls.length} уроков</small><i><em style={{width:width+'%'}}/></i></div>
-          <strong>→</strong>
+          <span className="world-icon">{w.icon}</span><div className="world-info"><b>{w.title}</b><small>{done}/{ls.length} уроков</small><i><em style={{width:width+'%'}}/></i></div><strong>→</strong>
         </button>
       })}
     </div>
-
     <div className="home-actions">
       <button onClick={()=>nav('progress')}><span>📊</span><b>Мой прогресс</b><strong>→</strong></button>
       <button onClick={()=>nav('achievements')}><span>🏅</span><b>Достижения</b><strong>→</strong></button>
     </div>
-
     <div className="home-tip">
-      <div className="home-tip-art"><DoctorMascot/></div>
+      <div className="home-tip-art"><img src="/Eagle/images/doctor-main.webp" alt="" className="doctor-asset"/></div>
       <div className="home-tip-bulb">💡</div>
       <div className="home-tip-copy"><b>Вопросы сегодня —<br/>большие знания завтра!</b></div>
     </div>
-
     {s.purchasedGifts.length>0&&<div className="card my-gifts home-gifts"><div className="section-title"><h2>🎁 Мои подарки</h2><button onClick={()=>nav('shop')}>Все →</button></div><div className="my-gifts-list">{s.purchasedGifts.map(id=><span key={id}>{id==='sticker'?'🎁 Набор наклеек':id==='avatar'?'🧢 Новый аватар':'🪄 Волшебный сундук'}</span>)}</div></div>}
   </section>
 }
