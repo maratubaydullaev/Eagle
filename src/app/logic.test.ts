@@ -52,7 +52,7 @@ describe('POCHEMUЧКА MVP content', () => {
   })
   it('every lesson has at least two activities', () => expect(lessons.every(l => l.steps.length >= 2)).toBe(true))
   it('age adaptation uses the agreed quiz timers', () => { expect(ageAdaptation.timerSeconds(6)).toBe(20); expect(ageAdaptation.timerSeconds(8)).toBe(17); expect(ageAdaptation.timerSeconds(10)).toBe(15) })
-  it('completed lessons cannot farm XP on replay', () => {
+  it('completed lessons award points without farming on replay', () => {
     const state: any = { profile: { id: 'p', age: 7 }, progress: {}, activityMastery: {}, xp: 0, stars: 0 }
     const lesson = lessons[0]
     const first = learning.complete(state, lesson, lesson.steps.length)
