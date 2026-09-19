@@ -28,7 +28,13 @@ describe('POCHEMUЧКА curriculum', () => {
       expect(new Set(d.answers.map((x: any) => x.text)).size).toBe(3)
       expect(d.explanation).toBeTruthy()
       expect(d.answers[d.correctAnswerId].text).toBeTruthy()
+      expect(['0', '1', '2']).toContain(d.correctAnswerId)
     }
+  })
+  it('distributes correct answers across all three positions', () => {
+    const activities = lessons.flatMap(l => l.steps)
+    const counts = ['0', '1', '2'].map(position => activities.filter(a => String((a.data as any).correctAnswerId) === position).length)
+    expect(counts).toEqual([66, 67, 67])
   })
   it('locks a lesson with any mistake until the next day', () => {
     const progress = { id: 'p1', profileId: 'child', lessonId: 'test', status: 'completed', score: 1, mastery: 0.5, attempts: 1, completedAt: '2026-09-19T10:00:00Z' } as any
