@@ -260,7 +260,7 @@ serve(async (req) => {
       // Lesson locks are enforced server-side as well as in the client UI.
       const { data: sequence, error: sequenceError } = await admin
         .from('lessons')
-        .select('id,order_index')
+        .select('id,topic_id,order_index')
         .eq('topic_id', lesson.topic_id)
         .eq('is_active', true)
         .lte('age_min', profile.age)
