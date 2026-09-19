@@ -508,7 +508,7 @@ serve(async (req) => {
         return json({ ok: true, progress: data, serverScore: score })
       }
 
-      const mastery = Number((((existing?.mastery || 0) * 0.4) + accuracy * 0.6).toFixed(3))
+      const mastery = Number(accuracy.toFixed(3))
       const stars = accuracy >= 0.9 ? 3 : accuracy >= 0.6 ? 2 : accuracy >= 0.3 ? 1 : 0
       const rewardKey = `lesson:${lessonId}:completion`
       const { data: reward, error: rewardLookupError } = await admin
