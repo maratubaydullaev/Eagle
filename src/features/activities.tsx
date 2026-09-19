@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Activity } from '../app/types'
-import { audio, telegram } from '../services/core'\nimport { Mascot } from '../components/Mascot'
+import { audio, telegram } from '../services/core'
+import { Mascot } from '../components/Mascot'
 
 type Attempt = (ok: boolean, answer?: unknown, timeSpent?: number) => void | Promise<void>
 
