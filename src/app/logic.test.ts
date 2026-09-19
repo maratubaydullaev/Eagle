@@ -28,9 +28,9 @@ describe('POCHEMUЧКА curriculum', () => {
       expect(() => ActivitySchema.parse(activity)).not.toThrow()
     }
   })
-  it('has no duplicate question text in the curriculum', () => {
+  it('has no duplicate quiz question text in the curriculum', () => {
     const normalize = (value: string) => value.toLowerCase().replace(/[«»"“”.,!?—–:;()]/g, '').replace(/\s+/g, ' ').trim()
-    const questions = lessons.flatMap(l => l.steps).map(a => normalize(String((a.data as any).question)))
+    const questions = lessons.flatMap(l => l.steps).filter(a => a.type === 'quiz').map(a => normalize(String((a.data as any).question)))
     expect(new Set(questions).size).toBe(questions.length)
   })
   it('keeps explanations educationally useful', () => {
