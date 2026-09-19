@@ -9,10 +9,12 @@ describe('POCHEMUЧКА MVP content', () => {
   it('lesson ids are unique', () => expect(new Set(lessons.map(l => l.id)).size).toBe(10))
   it('content activities use supported MVP types', () => expect(lessons.flatMap(l => l.steps).every(a => ['quiz', 'drag_drop', 'matching'].includes(a.type))).toBe(true))
   it('matching-style MVP activities use the pair engine', () => {
-    const pairActivities = lessons.flatMap(l => l.steps).filter(a => a.id === 'w2b' || a.id === 'a1b' || a.id === 'a2b')
-    expect(pairActivities).toHaveLength(3)
-    expect(pairActivities.every(a => a.type === 'matching')).toBe(true)
-  }
+    for (const id of ['w2b', 'a1b', 'a2b']) {
+      const activity = lessons.flatMap(l => l.steps).find(a => a.id === id)
+      expect(activity).toBeDefined()
+      expect(activity?.type).toBe('matching')
+    }
+  })
   it('every lesson has at least two activities', () => expect(lessons.every(l => l.steps.length >= 2)).toBe(true))
   it('age adaptation uses the agreed quiz timers', () => { expect(ageAdaptation.timerSeconds(6)).toBe(20); expect(ageAdaptation.timerSeconds(8)).toBe(17); expect(ageAdaptation.timerSeconds(10)).toBe(15) })
   it('completed lessons cannot farm XP on replay', () => {
