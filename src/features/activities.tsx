@@ -35,8 +35,8 @@ export function QuizActivity({ activity, onResult, onAttempt, timerSeconds = 15 
     try { telegram.haptic(ok ? 'success' : 'error') } catch {}
   }
   return <div className="activity" onPointerDown={() => audio.unlock()}>
-    <div className="activity-meta"><span className={remaining <= 3 ? 'timer-critical' : ''} aria-label={remaining <= 3 ? 'critical' : undefined}>⏱ {remaining} сек.</span></div>
-    <h2>{d.question}</h2>
+    <div className="activity-meta"><span className="activity-type-badge">🧠 Подумай</span><span className={remaining <= 3 ? 'timer-critical' : ''} aria-label={remaining <= 3 ? 'critical' : undefined}>⏱ {remaining} сек.</span></div>
+    <div className="question-label">ВОПРОС</div><h2 className="quiz-question">{d.question}</h2>
     <div className="answers">{d.answers.map((x: any) => <button key={x.id} disabled={!!answer} className={answer ? (x.id === d.correctAnswerId ? 'correct' : x.id === answer ? 'wrong' : '') : 'answer'} aria-pressed={answer === x.id} onClick={() => pick(x.id)}>{x.text}</button>)}</div>
     {answer && <>
       <div className={answer === d.correctAnswerId ? 'feedback good' : 'feedback bad'} role="status">{answer === '__timeout__' ? 'Время вышло ⏱️' : answer === d.correctAnswerId ? 'Отлично! 🎉' : 'Почти! 💡 ' + d.explanation}</div>
