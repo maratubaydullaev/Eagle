@@ -174,16 +174,18 @@ serve(async (req) => {
       // keeps the star balance used by the gift shop consistent with real attempts.
       const progressRows = progress || []
       const activityByLesson = new Map<string, any[]>()
-      const { data: allActivities, error: allActivitiesError } = await admin
-        .from('activities')
-        .select('id,lesson_id')
-        .in('lesson_id', progressRows.map((row: any) => row.lesson_id))
-      if (allActivitiesError) throw allActivitiesError
+      if (progressRows.length) {
+        const { data: allActivities, error: allActivitiesError } = await admin
+          .from('activities')
+          .select('id,lesson_id')
+          .in('lesson_id', progressRows.map((row: any) => row.lesson_id))
+        if (allActivitiesError) throw allActivitiesError
 
-      for (const activity of allActivities || []) {
-        const list = activityByLesson.get(activity.lesson_id) || []
-        list.push(activity)
-        activityByLesson.set(activity.lesson_id, list)
+        for (const activity of allActivities || []) {
+          const list = activityByLesson.get(activity.lesson_id) || []
+          list.push(activity)
+          activityByLesson.set(activity.lesson_id, list)
+        }
       }
 
       const attemptsByActivity = new Map<string, any[]>()
