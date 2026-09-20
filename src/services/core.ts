@@ -1,7 +1,7 @@
 import type { AppState, ChildProfile, Grade, Lesson, LessonProgress } from '../app/types'
 import { lessons } from '../content/content'
 
-const KEY = 'pochemuchka_state_v2'
+const KEY = 'pochemuchka_state_v1'
 export const gifts = { sticker: 5, avatar: 10, treasure: 15 } as const
 const emptyState = (): AppState => ({ profile: null, progress: {}, activityMastery: {}, xp: 0, stars: 0, purchasedGifts: [] })
 
