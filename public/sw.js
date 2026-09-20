@@ -1,4 +1,4 @@
-const CACHE='pochemuchka-shell-v5'
+const CACHE='pochemuchka-shell-v6'
 const BASE=new URL('./',self.registration.scope).pathname
 const SHELL=[BASE,BASE+'manifest.webmanifest',BASE+'icons/icon-192.svg',BASE+'icons/icon-512.svg']
 

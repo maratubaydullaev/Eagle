@@ -158,3 +158,8 @@
 .bottom-nav img{width:24px;height:24px;object-fit:contain;display:block;margin:0 auto 2px}
 .bottom-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
 .bottom-nav small{font-size:10px}
+
+
+/* ACHIEVEMENTS CARD — requested compact height and bold title */
+.home-v204-actions button:nth-child(2){min-height:49px;height:49px;align-self:center}
+.home-v204-actions button:nth-child(2) b{font-weight:900}
