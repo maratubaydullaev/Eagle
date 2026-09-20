@@ -518,3 +518,11 @@ button:focus-visible,input:focus-visible{
 .approved-png-nav button{pointer-events:auto!important;width:25%!important;height:100%!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;color:transparent!important}
 .approved-png-nav button span,.approved-png-nav button small{display:none!important}
 @media(max-width:700px){.home-png-canvas{width:100%;}.approved-png-nav{width:100%!important;height:18vw!important;max-height:76px!important}}
+
+/* HOME FINAL — live DOM implementation */
+.home-approved .cat-hero-action{display:block!important;margin-top:12px!important;min-height:42px!important;padding:9px 14px!important;border:0!important;border-radius:14px!important;background:#1976D2!important;color:#fff!important;font-size:12px!important;font-weight:900!important;box-shadow:0 8px 16px rgba(25,118,210,.22)!important}
+.home-approved .home-actions button{cursor:pointer!important}
+.home-approved .home-tip-copy small{display:block!important;color:#315779!important;font-size:11px!important;margin-top:3px!important}
+@media(max-width:700px){
+ .home-approved .cat-hero-action{font-size:10px!important;padding:8px 11px!important;min-height:38px!important}
+}
