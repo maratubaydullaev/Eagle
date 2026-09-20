@@ -12,11 +12,13 @@ function Home({s,nav}:{s:AppState;nav:(r:string)=>void}){
   const completedCount=Object.values(s.progress).filter(x=>x.status==='completed').length;
   const iconByWorld:Record<string,string>={world:'globe.png',math:'math_1234.png',animals:'paw.png',languages:'abc.png'};
   const labelByWorld:Record<string,string>={world:'Мир',math:'Математика',animals:'Животные',languages:'Языки'};
+  const giftLabels:Record<string,string>={sticker:'🎁 Набор наклеек',avatar:'🧢 Новый аватар',treasure:'🪄 Волшебный сундук'};
   return <section className="home-v204">
     <div className="home-v204-top">
       <div><p className="home-v204-kicker">ПОЧЕМУЧКИ</p><h1>Привет, {s.profile!.name}!</h1><p>Продолжай учиться — тебя ждут новые открытия!</p></div>
       <button className="home-v204-bell" onClick={()=>nav('me')} aria-label="Уведомления"><img src={asset('ui/notification_bell.png')} alt=""/></button>
     </div>
+    {s.purchasedGifts.length>0&&<div className="home-v204-my-gifts"><div><b>Мои подарки</b><small>Ты уже получил:</small></div><div className="home-v204-my-gifts-list">{s.purchasedGifts.map(id=><span key={id}>{giftLabels[id]||id}</span>)}</div></div>}
     <div className="home-v204-hero">
       <img className="home-v204-hero-bg" src={asset('backgrounds/landscape_card.png')} alt="" />
       <div className="home-v204-speech">
@@ -45,7 +47,7 @@ function Home({s,nav}:{s:AppState;nav:(r:string)=>void}){
     </div>
     <div className="home-v204-actions">
       <button onClick={()=>nav('progress')}><img src={asset('actions/progress_chart.png')} alt=""/><span><b>Мой прогресс</b><small>Посмотри свой путь</small></span><strong>→</strong></button>
-      <button onClick={()=>nav('achievements')}><img src={asset('actions/medal.png')} alt=""/><span><b>Достижения</b><small>Собирай награды</small></span><strong>→</strong></button>
+      <button onClick={()=>nav('achievements')}><img src={asset('actions/medal.png')} alt=""/><span><b>Мои достижения</b><small>Собирай награды</small></span><strong>→</strong></button>
     </div>
     <div className="home-v204-banner">
       <img className="home-v204-banner-bg" src={asset('backgrounds/landscape_strip.png')} alt=""/>
