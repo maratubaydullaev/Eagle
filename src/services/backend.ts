@@ -1,5 +1,7 @@
 import type { AppState, ActivityAttempt, ChildProfile, LessonProgress } from '../app/types'
-import { gifts, gradeForAge, telegram } from './core'
+import { gradeForAge, telegram } from './core'
+import { lessons } from '../content/content'
+import { GIFT_COSTS, activityContentHash, lessonContentHash } from '../../supabase/functions/_shared/rewards'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const configured = Boolean(url && telegram.initData)
@@ -32,6 +34,26 @@ function fromRow(row: any): LessonProgress {
     stars: row.stars ?? 0,
   }
 }
+
+function lessonById(lessonId: string) {
+  return lessons.find((l) => l.id === lessonId)
+}
+function activityById(activityId: string) {
+  for (const lesson of lessons) {
+    const activity = lesson.steps.find((s) => s.id === activityId)
+    if (activity) return { lesson, activity }
+  }
+  return undefined
+}
+function hashForLesson(lessonId: string): string {
+  const lesson = lessonById(lessonId)
+  return lesson ? lessonContentHash(lesson.id, lesson.steps) : ''
+}
+function hashForActivity(activityId: string): string {
+  const found = activityById(activityId)
+  return found ? activityContentHash(found.activity) : ''
+}
+
 export const backend = {
   get enabled() { return configured },
   async bootstrap(): Promise<AppState | null> {
@@ -59,7 +81,7 @@ export const backend = {
     const ps = Object.values(progress) as LessonProgress[]
     const purchasedGifts = (body.giftPurchases || []).map((x: any) => String(x.gift_id || x.giftId)).filter(Boolean)
     const earnedStars = ps.reduce((n, p) => n + p.stars, 0)
-    const spentStars = purchasedGifts.reduce((n: number, id: string) => n + (gifts[id as keyof typeof gifts] || 0), 0)
+    const spentStars = purchasedGifts.reduce((n: number, id: string) => n + ((GIFT_COSTS as Record<string, number>)[id] || 0), 0)
     return {
       profile,
       progress,
@@ -82,19 +104,33 @@ export const backend = {
     const body = await call('due_reviews')
     return body ? (body.progress || []).map(fromRow) : []
   },
-  async saveProgress(progress: LessonProgress) {
-    await call('save_progress', {
+  async saveProgress(
+    progress: LessonProgress,
+  ): Promise<{ serverScore?: number; contentDrift: boolean; progress?: LessonProgress } | null> {
+    const body = await call('save_progress', {
       lessonId: progress.lessonId,
       status: progress.status,
       startedAt: progress.startedAt,
+      contentHash: hashForLesson(progress.lessonId),
     })
+    if (!body) return null
+    return {
+      serverScore: typeof body.serverScore === 'number' ? body.serverScore : undefined,
+      contentDrift: Boolean(body.content_drift),
+      progress: body.progress ? fromRow(body.progress) : undefined,
+    }
   },
-  async saveActivityAttempt(attempt: Omit<ActivityAttempt, 'id' | 'createdAt'>) {
-    await call('activity_attempt', {
+  async saveActivityAttempt(
+    attempt: Omit<ActivityAttempt, 'id' | 'createdAt'>,
+  ): Promise<{ isCorrect: boolean; contentDrift: boolean } | null> {
+    const body = await call('activity_attempt', {
       activityId: attempt.activityId,
       answer: attempt.answer,
       timeSpent: attempt.timeSpent,
+      contentHash: hashForActivity(attempt.activityId),
     })
+    if (!body) return null
+    return { isCorrect: Boolean(body.isCorrect), contentDrift: Boolean(body.content_drift) }
   },
   async event(eventName: string, payload: Record<string, unknown> = {}) {
     try {
