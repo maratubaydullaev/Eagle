@@ -163,3 +163,7 @@
 /* ACHIEVEMENTS CARD — requested compact height and bold title */
 .home-v204-actions button:nth-child(2){min-height:49px;height:49px;align-self:center}
 .home-v204-actions button:nth-child(2) b{font-weight:900}
+
+.home-v204-my-gifts{margin:-2px 0 10px;padding:10px 12px;border-radius:18px;background:#fff7df;border:1px solid #f4e3b3;box-shadow:0 7px 18px #18324a0d}
+.home-v204-my-gifts>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.home-v204-my-gifts b{font-size:12px;color:#8a681b}.home-v204-my-gifts small{font-size:10px;color:#9b7d36}.home-v204-my-gifts-list{display:flex;gap:7px;overflow:auto}.home-v204-my-gifts-list span{white-space:nowrap;padding:6px 9px;border-radius:10px;background:#fff;color:#765d1c;font-size:10px;font-weight:900}
