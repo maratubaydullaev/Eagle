@@ -18,7 +18,7 @@ function Home({s,nav}:{s:AppState;nav:(r:string)=>void}){
       <button className="home-v204-bell" onClick={()=>nav('me')} aria-label="Уведомления"><img src={asset('ui/notification_bell.png')} alt=""/></button>
     </div>
     <div className="home-v204-hero">
-      <img className="home-v204-hero-bg" src={asset('backgrounds/landscape_strip.png')} alt="" />
+      <img className="home-v204-hero-bg" src={asset('backgrounds/landscape_card.png')} alt="" />
       <div className="home-v204-speech">
         <img src={asset('ui/speech_bubble.png')} alt="" />
         <span>Я проверю твои знания и помогу узнать много нового!</span>
