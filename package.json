@@ -23,6 +23,7 @@
     "typescript": "^5.9.2",
     "vite": "^7.1.5",
     "vitest": "^3.2.4",
-    "@playwright/test": "^1.55.0"
+    "@playwright/test": "^1.55.0",
+    "sharp": "^0.34.3"
   }
 }
