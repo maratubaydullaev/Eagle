@@ -11,7 +11,7 @@ function Home({s,nav}:{s:AppState;nav:(r:string)=>void}) {
   const visibleWorlds=worlds.filter(w=>w.isActive).slice(0,4)
   return <section className="home home-png-approved">
     <div className="home-png-canvas">
-      <img src="/Eagle/images/home-approved.jpg" alt="Главная страница Почемучки" />
+      <img src="/Eagle/images/home-approved-small.jpg" alt="Главная страница Почемучки" />
       <button className="home-hotspot home-hotspot-bell" onClick={()=>nav('me')} aria-label="Профиль" />
       <button className="home-hotspot home-hotspot-stats" onClick={()=>nav('progress')} aria-label="Прогресс" />
       <div className="home-world-hotspots">
