@@ -1,4 +1,4 @@
-const CACHE='pochemuchka-shell-v4'
+const CACHE='pochemuchka-shell-v5'
 const BASE=new URL('./',self.registration.scope).pathname
 const SHELL=[BASE,BASE+'manifest.webmanifest',BASE+'icons/icon-192.svg',BASE+'icons/icon-512.svg']
 
@@ -26,7 +26,7 @@ self.addEventListener('fetch',event=>{
       : caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{
           if(response.ok&&requestUrl.origin===self.location.origin){
             const copy=response.clone()
-            caches.open(CACHE).then(cache=>cache.put(event.request,copy))
+            caches.open(CACHE).then(cache=>cache.put(requestUrl.href,copy))
           }
           return response
         }).catch(()=>caches.match(BASE)))
