@@ -526,3 +526,20 @@ button:focus-visible,input:focus-visible{
 @media(max-width:700px){
  .home-approved .cat-hero-action{font-size:10px!important;padding:8px 11px!important;min-height:38px!important}
 }
+
+
+/* APPROVED HOME — exact supplied artwork, no redesign */
+.home-approved-image{min-height:100vh;padding:0!important;margin:0!important;background:#eefbf9!important;display:flex;justify-content:center;overflow-x:hidden}
+.home-approved-art{position:relative;width:min(100%,422px);margin:0 auto;line-height:0}
+.home-approved-art>img{display:block;width:100%;height:auto;margin:0;padding:0;user-select:none;-webkit-user-drag:none}
+.home-hit{position:absolute;display:block;border:0;background:transparent;padding:0;margin:0;cursor:pointer;z-index:10;border-radius:20px}
+.home-hit-bell{left:78.5%;top:5.2%;width:11%;height:6%}
+.home-hit-world-0{left:9%;top:50.5%;width:39%;height:12%}
+.home-hit-world-1{right:9%;top:50.5%;width:39%;height:12%}
+.home-hit-world-2{left:9%;top:63.3%;width:39%;height:12%}
+.home-hit-world-3{right:9%;top:63.3%;width:39%;height:12%}
+.home-hit-progress{left:9%;top:76.2%;width:39%;height:6%}
+.home-hit-achievements{right:9%;top:76.2%;width:39%;height:6%}
+.home-hit-nav-home,.home-hit-nav-worlds,.home-hit-nav-shop,.home-hit-nav-profile{top:92.3%;height:7.7%;width:25%;border-radius:0}
+.home-hit-nav-home{left:0}.home-hit-nav-worlds{left:25%}.home-hit-nav-shop{left:50%}.home-hit-nav-profile{left:75%}
+@media(min-width:701px){.home-approved-image{padding-bottom:20px!important}.home-approved-art{width:422px}}
