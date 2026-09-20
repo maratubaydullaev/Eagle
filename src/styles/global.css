@@ -514,7 +514,7 @@ button:focus-visible,input:focus-visible{
 .home-world-hotspot.world-0{left:0;top:0}.home-world-hotspot.world-1{right:0;top:0}.home-world-hotspot.world-2{left:0;bottom:0}.home-world-hotspot.world-3{right:0;bottom:0}
 .home-hotspot-progress{left:4.5%;top:77.1%;width:45%;height:7%}
 .home-hotspot-achievements{right:4.5%;top:77.1%;width:45%;height:7%}
-.approved-png-nav{position:fixed!important;left:50%!important;bottom:0!important;transform:translateX(-50%)!important;width:min(100%,422px)!important;height:76px!important;background:url('/Eagle/images/home-nav.png') center/100% 100% no-repeat!important;z-index:50!important;border:0!important;box-shadow:none!important;padding:0!important;gap:0!important}
-.approved-png-nav button{width:25%!important;height:100%!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;color:transparent!important}
+.approved-png-nav{position:fixed!important;left:50%!important;bottom:0!important;transform:translateX(-50%)!important;width:min(100%,422px)!important;height:76px!important;background:transparent!important;z-index:50!important;border:0!important;box-shadow:none!important;padding:0!important;gap:0!important;pointer-events:none!important;z-index:50!important;border:0!important;box-shadow:none!important;padding:0!important;gap:0!important}
+.approved-png-nav button{pointer-events:auto!important;width:25%!important;height:100%!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;color:transparent!important}
 .approved-png-nav button span,.approved-png-nav button small{display:none!important}
 @media(max-width:700px){.home-png-canvas{width:100%;}.approved-png-nav{width:100%!important;height:18vw!important;max-height:76px!important}}
