@@ -14,7 +14,7 @@ function Home({s,nav}:{s:AppState;nav:(r:string)=>void}){
   const labelByWorld:Record<string,string>={world:'Мир',math:'Математика',animals:'Животные',languages:'Языки'};
   return <section className="home-v204">
     <div className="home-v204-top">
-      <div><p className="home-v204-kicker">ПОЧЕМУЧКИ</p><h1>Привет, {s.profile!.name}! 👋</h1><p>Продолжай учиться — тебя ждут новые открытия!</p></div>
+      <div><p className="home-v204-kicker">ПОЧЕМУЧКИ</p><h1>Привет, {s.profile!.name}!</h1><p>Продолжай учиться — тебя ждут новые открытия!</p></div>
       <button className="home-v204-bell" onClick={()=>nav('me')} aria-label="Уведомления"><img src={asset('ui/notification_bell.png')} alt=""/></button>
     </div>
     <div className="home-v204-hero">
