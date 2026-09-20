@@ -2,6 +2,7 @@
 // Deployment trigger: verify SUPABASE_ACCESS_TOKEN and redeploy gift purchase action.
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { GIFT_COSTS, activityContentHash, computeLessonOutcome, evaluateActivity, lessonContentHash } from '../_shared/rewards.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -80,51 +81,6 @@ function secretKey() {
     } catch {}
   }
   return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-}
-
-function reviewDate(mastery: number) {
-  const days = mastery < 1 ? 1 : 7
-  const date = new Date()
-  date.setDate(date.getDate() + days)
-  return date.toISOString()
-}
-
-function evaluateActivity(type: string, content: any, answer: unknown) {
-  if (!content || answer === null || answer === undefined) return false
-
-  if (type === 'quiz') {
-    return typeof answer === 'string' && answer === String(content.correctAnswerId)
-  }
-
-  if (type === 'drag_drop') {
-    if (!answer || typeof answer !== 'object') return false
-    const a = answer as { item?: unknown; target?: unknown }
-    const targetIndex = Array.isArray(content.targets) ? content.targets.indexOf(a.target) : -1
-    return targetIndex >= 0 &&
-      Array.isArray(content.correct) &&
-      String(content.correct[targetIndex]) === String(a.item)
-  }
-
-  if (type === 'matching') {
-    if (!answer || typeof answer !== 'object') return false
-    const a = answer as { first?: unknown; second?: unknown }
-    if (typeof a.first !== 'string' || typeof a.second !== 'string') return false
-    return Array.isArray(content.pairs) && content.pairs.some(
-      (pair: unknown) =>
-        Array.isArray(pair) &&
-        pair.length === 2 &&
-        ((String(pair[0]) === a.first && String(pair[1]) === a.second) ||
-          (String(pair[0]) === a.second && String(pair[1]) === a.first)),
-    )
-  }
-
-  if (type === 'sorting' || type === 'sequence') {
-    if (!Array.isArray(answer) || !Array.isArray(content.correctOrder)) return false
-    return answer.length === content.correctOrder.length &&
-      answer.every((value: unknown, index: number) => String(value) === String(content.correctOrder[index]))
-  }
-
-  return false
 }
 
 serve(async (req) => {
@@ -282,6 +238,12 @@ serve(async (req) => {
 
       const answer = body.payload?.answer ?? null
       const isCorrect = evaluateActivity(activity.type, activity.content, answer)
+      const clientHash = String(body.payload?.contentHash || '')
+      const serverHash = clientHash
+        ? activityContentHash({ id: activity.id, type: activity.type, data: activity.content })
+        : ''
+      const contentDrift = Boolean(clientHash && serverHash && clientHash !== serverHash)
+      if (contentDrift) console.warn('content drift', activityId, clientHash, serverHash)
       const timeSpent = Math.max(0, Math.min(3600000, Math.floor(Number(body.payload?.timeSpent || 0))))
 
       const { data, error } = await admin
@@ -297,12 +259,12 @@ serve(async (req) => {
         .single()
       if (error) throw error
 
-      return json({ ok: true, isCorrect, attempt: data })
+      return json({ ok: true, isCorrect, content_drift: contentDrift, attempt: data })
     }
 
     if (body.action === 'purchase_gift') {
       const giftId = String(body.payload?.giftId || '')
-      const giftCosts: Record<string, number> = { sticker: 5, avatar: 10, treasure: 15 }
+      const giftCosts = GIFT_COSTS as Record<string, number>
       if (!giftCosts[giftId]) return json({ error: 'unknown gift' }, 400)
 
       const { data, error } = await admin.rpc('purchase_gift_atomic', {
@@ -426,6 +388,13 @@ serve(async (req) => {
       if (activitiesError) throw activitiesError
       if (!activities?.length) return json({ error: 'lesson has no activities' }, 400)
 
+      const clientHash = String(body.payload?.contentHash || '')
+      const serverHash = clientHash
+        ? lessonContentHash(lessonId, (activities || []).map((a: any) => ({ id: a.id, type: a.type, data: a.content })))
+        : ''
+      const contentDrift = Boolean(clientHash && serverHash && clientHash !== serverHash)
+      if (contentDrift) console.warn('content drift', lessonId, clientHash, serverHash)
+
       const { data: existing, error: existingError } = await admin
         .from('lesson_progress')
         .select('*')
@@ -450,7 +419,6 @@ serve(async (req) => {
 
       const answeredCount = latest.size
       const score = [...latest.values()].filter(Boolean).length
-      const accuracy = score / activities.length
 
       if (status === 'completed' && answeredCount < activities.length) {
         return json({
@@ -482,11 +450,11 @@ serve(async (req) => {
           .select()
           .single()
         if (error) throw error
-        return json({ ok: true, progress: data, serverScore: score })
+        return json({ ok: true, progress: data, serverScore: score, content_drift: contentDrift })
       }
 
-      const mastery = Number(accuracy.toFixed(3))
-      const stars = accuracy >= 0.9 ? 3 : accuracy >= 0.6 ? 2 : accuracy >= 0.3 ? 1 : 0
+      const outcome = computeLessonOutcome(activities.length, score)
+      const mastery = outcome.accuracy
       const rewardKey = `lesson:${lessonId}:completion`
       const { data: reward, error: rewardLookupError } = await admin
         .from('reward_transactions')
@@ -496,7 +464,7 @@ serve(async (req) => {
         .maybeSingle()
       if (rewardLookupError) throw rewardLookupError
 
-      const rewardAmount = 20 + score * 10
+      const rewardAmount = outcome.xp
       if (!reward) {
         const { error: rewardError } = await admin.from('reward_transactions').insert({
           profile_id: profile.id,
@@ -507,7 +475,7 @@ serve(async (req) => {
       }
 
       const storedXp = existing?.xp || rewardAmount
-      const storedStars = Math.max(existing?.stars || 0, stars)
+      const storedStars = Math.max(existing?.stars || 0, outcome.stars)
       const progress = {
         profile_id: profile.id,
         lesson_id: lessonId,
@@ -517,7 +485,7 @@ serve(async (req) => {
         attempts: (existing?.attempts || 0) + 1,
         started_at: body.payload?.startedAt || existing?.started_at || null,
         completed_at: new Date().toISOString(),
-        next_review_at: reviewDate(mastery),
+        next_review_at: outcome.nextReviewAt,
         xp: storedXp,
         stars: storedStars,
       }
@@ -528,7 +496,7 @@ serve(async (req) => {
         .single()
       if (error) throw error
 
-      return json({ ok: true, progress: data, serverScore: score, mastery })
+      return json({ ok: true, progress: data, serverScore: score, mastery, content_drift: contentDrift })
     }
 
     if (body.action === 'analytics') {
