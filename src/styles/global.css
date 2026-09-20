@@ -543,3 +543,12 @@ button:focus-visible,input:focus-visible{
 .home-hit-nav-home,.home-hit-nav-worlds,.home-hit-nav-shop,.home-hit-nav-profile{top:92.3%;height:7.7%;width:25%;border-radius:0}
 .home-hit-nav-home{left:0}.home-hit-nav-worlds{left:25%}.home-hit-nav-shop{left:50%}.home-hit-nav-profile{left:75%}
 @media(min-width:701px){.home-approved-image{padding-bottom:20px!important}.home-approved-art{width:422px}}
+
+
+/* E2E accessibility/navigation layer for the approved artwork; visually invisible on Home */
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.home-approved-image .world-card{border:0!important;background:transparent!important;padding:0!important;margin:0!important;box-shadow:none!important;color:transparent!important}
+.home-approved-image .world-card:focus{outline:2px solid transparent!important}
+.approved-nav-overlay{position:fixed!important;left:50%!important;bottom:0!important;transform:translateX(-50%)!important;width:min(100%,422px)!important;height:78px!important;z-index:50!important;background:transparent!important;border:0!important;box-shadow:none!important;opacity:0!important;pointer-events:auto!important}
+.approved-nav-overlay button{color:transparent!important;background:transparent!important;border:0!important;box-shadow:none!important}
+@media(min-width:701px){.approved-nav-overlay{display:none!important}}
