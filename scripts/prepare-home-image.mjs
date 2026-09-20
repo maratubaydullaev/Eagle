@@ -14,12 +14,12 @@ if (!existsSync(source)) {
 
 try {
   await sharp(source)
-    .resize({ width: 768, kernel: sharp.kernel.lanczos3 })
+    .resize({ width: 1080, height: 1920, fit: 'fill', kernel: sharp.kernel.lanczos3 })
     .sharpen({ sigma: 0.8, m1: 0.5, m2: 0.02 })
     .webp({ quality: 96, effort: 6 })
     .toFile(target)
 
-  console.log(`Prepared high-resolution Home image: ${target}`)
+  console.log(`Prepared 1080x1920 Home image: ${target}`)
 } catch (error) {
   console.warn('Sharp image preparation failed; using the original approved image as a fallback.', error)
   copyFileSync(source, target)
