@@ -25,7 +25,7 @@ function Home({s,nav}:{s:AppState;nav:(r:string)=>void}){
     </div>
     <div className="home-v204-section-head"><div><p>ТВОИ МИРЫ</p><h2>Выбирай, что изучить</h2></div><button onClick={()=>nav('progress')}>Все →</button></div>
     <div className="home-v204-worlds">
-      {visibleWorlds.map(w=><button key={w.id} className="home-v204-world" onClick={()=>nav('world:'+w.id)}>
+      {visibleWorlds.map(w=><button key={w.id} className="home-v204-world world-card" onClick={()=>nav('world:'+w.id)}>
         <img src={asset(`cards/world_${w.id==='world'?'nature':w.id}_card.png`)} alt=""/>
         <span><b>{w.title}</b><small>{w.description}</small></span>
       </button>)}
