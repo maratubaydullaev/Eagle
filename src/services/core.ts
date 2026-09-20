@@ -1,8 +1,9 @@
 import type { AppState, ChildProfile, Grade, Lesson, LessonProgress } from '../app/types'
 import { lessons } from '../content/content'
+import { computeLessonOutcome, GIFT_COSTS } from '../../supabase/functions/_shared/rewards'
 
 const KEY = 'pochemuchka_state_v1'
-export const gifts = { sticker: 5, avatar: 10, treasure: 15 } as const
+export const gifts = GIFT_COSTS
 const emptyState = (): AppState => ({ profile: null, progress: {}, activityMastery: {}, xp: 0, stars: 0, purchasedGifts: [] })
 
 function getStore(): Storage | null {
@@ -60,7 +61,7 @@ export const learning = {
     if (progress) return progress.status
     const profileGrade = state.profile?.grade
     const age = state.profile?.age || 7
-    const available = lessons.filter(x => x.worldId === lesson.worldId && (profileGrade ? x.grade === profileGrade : x.ageMin <= age && x.ageMax >= age)).sort((a,b) => a.orderIndex - b.orderIndex)
+    const available = lessons.filter(x => x.worldId === lesson.worldId && (profileGrade ? x.grade === profileGrade : x.ageMin <= age && x.ageMax >= age)).sort((a, b) => a.orderIndex - b.orderIndex)
     const index = available.findIndex(x => x.id === lesson.id)
     return index === 0 || state.progress[available[index - 1]?.id]?.status === 'completed' ? 'available' : 'locked'
   },
@@ -79,23 +80,23 @@ export const learning = {
   },
   complete(state: AppState, lesson: Lesson, score: number) {
     const total = Math.max(1, lesson.steps.length)
-    const accuracy = Math.max(0, Math.min(1, score / total))
-    const stars = accuracy >= .9 ? 3 : accuracy >= .6 ? 2 : accuracy >= .3 ? 1 : 0
     const old = state.progress[lesson.id]
     const rewardAlreadyGranted = (old?.xp || 0) > 0
+    const completedAt = new Date().toISOString()
+    const outcome = computeLessonOutcome(total, score, completedAt)
     const progress: LessonProgress = {
       id: old?.id || crypto.randomUUID(),
       profileId: state.profile!.id,
       lessonId: lesson.id,
       status: 'completed',
       score,
-      mastery: accuracy,
+      mastery: outcome.accuracy,
       attempts: (old?.attempts || 0) + 1,
       startedAt: old?.startedAt,
-      completedAt: new Date().toISOString(),
-      nextReviewAt: repetition.nextDate({ mastery: accuracy, completedAt: new Date().toISOString() } as LessonProgress).toISOString(),
-      xp: rewardAlreadyGranted ? old!.xp : 20 + score * 10,
-      stars: rewardAlreadyGranted ? Math.max(old!.stars, stars) : stars
+      completedAt,
+      nextReviewAt: outcome.nextReviewAt,
+      xp: rewardAlreadyGranted ? old!.xp : outcome.xp,
+      stars: rewardAlreadyGranted ? Math.max(old!.stars, outcome.stars) : outcome.stars
     }
     const next: AppState = {
       ...state,
@@ -114,7 +115,7 @@ export const telegram = {
   initData: tg?.initData || '',
   firstName: () => tg?.initDataUnsafe?.user?.first_name || '',
   ready: () => { try { tg?.ready(); tg?.expand() } catch {} },
-  haptic: (kind: 'success'|'error'|'warning') => { try { tg?.HapticFeedback?.notificationOccurred(kind) } catch {} }
+  haptic: (kind: 'success' | 'error' | 'warning') => { try { tg?.HapticFeedback?.notificationOccurred(kind) } catch {} }
 }
 telegram.ready()
 
