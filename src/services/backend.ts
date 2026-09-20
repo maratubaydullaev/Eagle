@@ -86,7 +86,14 @@ export const backend = {
     await call('save_progress', {
       lessonId: progress.lessonId,
       status: progress.status,
+      score: progress.score,
+      mastery: progress.mastery,
+      attempts: progress.attempts,
       startedAt: progress.startedAt,
+      completedAt: progress.completedAt,
+      nextReviewAt: progress.nextReviewAt,
+      xp: progress.xp,
+      stars: progress.stars,
     })
   },
   async saveActivityAttempt(attempt: Omit<ActivityAttempt, 'id' | 'createdAt'>) {
