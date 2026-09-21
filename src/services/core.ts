@@ -1,6 +1,6 @@
 import type { AppState, ChildProfile, Grade, Lesson, LessonProgress } from '../app/types'
 import { lessons } from '../content/content'
-import { computeLessonOutcome, GIFT_COSTS } from '../../supabase/functions/_shared/rewards'
+import { computeLessonOutcome, computeWallet, GIFT_COSTS, nextReviewDate } from '../../supabase/functions/_shared/rewards'
 
 const KEY = 'pochemuchka_state_v1'
 export const gifts = GIFT_COSTS
@@ -12,8 +12,8 @@ function getStore(): Storage | null {
 function recalc(state: AppState): AppState {
   state.xp = Object.values(state.progress).reduce((n, p) => n + p.xp, 0)
   const earned = Object.values(state.progress).reduce((n, p) => n + p.stars, 0)
-  const spent = state.purchasedGifts.reduce((n, id) => n + (gifts[id as keyof typeof gifts] || 0), 0)
-  state.stars = Math.max(0, earned - spent)
+  const { balance } = computeWallet(earned, state.purchasedGifts)
+  state.stars = balance
   return state
 }
 export const storage = {
@@ -33,8 +33,8 @@ export const storage = {
     if (!(giftId in gifts) || state.purchasedGifts.includes(giftId)) return state
     const cost = gifts[giftId as keyof typeof gifts]
     const earned = Object.values(state.progress).reduce((n, p) => n + p.stars, 0)
-    const spent = state.purchasedGifts.reduce((n, id) => n + (gifts[id as keyof typeof gifts] || 0), 0)
-    if (earned - spent < cost) return state
+    const { balance } = computeWallet(earned, state.purchasedGifts)
+    if (balance < cost) return state
     state.purchasedGifts = [...state.purchasedGifts, giftId]
     this.save(state)
     return state
@@ -155,12 +155,7 @@ export const audio = {
 export const repetition = {
   intervals: [1, 3, 7],
   needsPractice: (progress: LessonProgress) => progress.attempts > 0 && progress.mastery < .7,
-  nextDate: (progress: LessonProgress) => {
-    const interval = progress.mastery < 1 ? 1 : 7
-    const date = new Date(progress.completedAt || Date.now())
-    date.setDate(date.getDate() + interval)
-    return date
-  }
+  nextDate: (progress: LessonProgress) => new Date(nextReviewDate(progress.mastery, progress.completedAt))
 }
 export const ageAdaptation = {
   group: (age: number) => `grade-${gradeForAge(age)}`,
