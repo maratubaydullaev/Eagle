@@ -1,6 +1,6 @@
 // Единственный источник истины для расчёта наград и оценки ответов.
 // Используется ОБЕИМИ сторонами:
-//   - клиент: src/services/core.ts, src/services/backend.ts, src/app/App.tsx
+//   - клиент: src/services/core.ts, src/services/backend.ts, src/screens/Lesson.tsx
 //   - Deno:   supabase/functions/pochemuchka-api/index.ts
 // Не дублируйте эти формулы ни на одной из сторон.
 
@@ -14,6 +14,12 @@ export interface LessonOutcome {
   nextReviewAt: string
 }
 
+export function nextReviewDate(accuracy: number, completedAtIso?: string): string {
+  const base = completedAtIso ? new Date(completedAtIso) : new Date()
+  base.setDate(base.getDate() + (accuracy < 1 ? 1 : 7))
+  return base.toISOString()
+}
+
 export function computeLessonOutcome(
   total: number,
   score: number,
@@ -24,9 +30,17 @@ export function computeLessonOutcome(
   const accuracy = Number((safeScore / safeTotal).toFixed(3))
   const stars = accuracy >= 0.9 ? 3 : accuracy >= 0.6 ? 2 : accuracy >= 0.3 ? 1 : 0
   const xp = 20 + safeScore * 10
-  const base = completedAtIso ? new Date(completedAtIso) : new Date()
-  base.setDate(base.getDate() + (accuracy < 1 ? 1 : 7))
-  return { accuracy, stars, xp, nextReviewAt: base.toISOString() }
+  return { accuracy, stars, xp, nextReviewAt: nextReviewDate(accuracy, completedAtIso) }
+}
+
+export function computeWallet(
+  earnedStars: number,
+  purchasedGiftIds: readonly string[],
+): { earned: number; spent: number; balance: number } {
+  const costs = GIFT_COSTS as Record<string, number>
+  const spent = purchasedGiftIds.reduce((n, id) => n + (costs[id] || 0), 0)
+  const balance = Math.max(0, earnedStars - spent)
+  return { earned: earnedStars, spent, balance }
 }
 
 export function evaluateActivity(type: string, content: unknown, answer: unknown): boolean {
