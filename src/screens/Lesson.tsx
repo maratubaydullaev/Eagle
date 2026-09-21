@@ -5,6 +5,7 @@ import { backend } from '../services/backend'
 import { lessons } from '../content/content'
 import { Mascot } from '../components/Mascot'
 import { QuizActivity, DragDropActivity, MatchingActivity, SortingActivity } from '../features/activities'
+import { computeLessonOutcome } from '../../supabase/functions/_shared/rewards'
 
 interface LessonResult {
   score: number
@@ -58,7 +59,7 @@ export function Lesson({ s, lesson, done, back, sync }: {
           ...fallback,
           status: 'completed',
           score: ns,
-          mastery: Math.max(0, Math.min(1, ns / Math.max(1, lesson.steps.length))),
+          mastery: computeLessonOutcome(lesson.steps.length, ns).accuracy,
           attempts: (fallback.attempts || 0) + 1,
           completedAt: new Date().toISOString(),
         }
