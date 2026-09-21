@@ -1,7 +1,7 @@
 import type { AppState, ActivityAttempt, ChildProfile, LessonProgress } from '../app/types'
 import { gradeForAge, telegram } from './core'
 import { lessons } from '../content/content'
-import { GIFT_COSTS, activityContentHash, lessonContentHash } from '../../supabase/functions/_shared/rewards'
+import { activityContentHash, computeWallet, lessonContentHash } from '../../supabase/functions/_shared/rewards'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const configured = Boolean(url && telegram.initData)
@@ -81,13 +81,13 @@ export const backend = {
     const ps = Object.values(progress) as LessonProgress[]
     const purchasedGifts = (body.giftPurchases || []).map((x: any) => String(x.gift_id || x.giftId)).filter(Boolean)
     const earnedStars = ps.reduce((n, p) => n + p.stars, 0)
-    const spentStars = purchasedGifts.reduce((n: number, id: string) => n + ((GIFT_COSTS as Record<string, number>)[id] || 0), 0)
+    const { balance } = computeWallet(earnedStars, purchasedGifts)
     return {
       profile,
       progress,
       activityMastery,
       xp: ps.reduce((n, p) => n + p.xp, 0),
-      stars: Math.max(0, earnedStars - spentStars),
+      stars: balance,
       purchasedGifts,
       lastLessonId: ps.find((p) => p.status === 'in_progress')?.lessonId,
     }
