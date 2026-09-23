@@ -4,7 +4,7 @@ import { computeLessonOutcome, computeWallet, GIFT_COSTS, nextReviewDate } from 
 
 const KEY = 'pochemuchka_state_v1'
 export const gifts = GIFT_COSTS
-const emptyState = (): AppState => ({ profile: null, progress: {}, activityMastery: {}, xp: 0, stars: 0, purchasedGifts: [] })
+const emptyState = (): AppState => ({ profile: null, progress: {}, xp: 0, stars: 0, purchasedGifts: [] })
 
 function getStore(): Storage | null {
   try { return typeof localStorage !== 'undefined' ? localStorage : null } catch { return null }
@@ -22,7 +22,7 @@ export const storage = {
       const raw = getStore()?.getItem(KEY)
       if (!raw) return emptyState()
       const parsed = JSON.parse(raw)
-      return { ...emptyState(), ...parsed, activityMastery: parsed.activityMastery || {}, purchasedGifts: Array.isArray(parsed.purchasedGifts) ? parsed.purchasedGifts : [] }
+      return { ...emptyState(), ...parsed, purchasedGifts: Array.isArray(parsed.purchasedGifts) ? parsed.purchasedGifts : [] }
     } catch { return emptyState() }
   },
   save(state: AppState) { getStore()?.setItem(KEY, JSON.stringify(recalc(state))) },
@@ -36,13 +36,6 @@ export const storage = {
     const { balance } = computeWallet(earned, state.purchasedGifts)
     if (balance < cost) return state
     state.purchasedGifts = [...state.purchasedGifts, giftId]
-    this.save(state)
-    return state
-  },
-  activityMastery(activityId: string, correct: boolean) {
-    const state = this.load()
-    const previous = state.activityMastery[activityId] ?? 0
-    state.activityMastery[activityId] = Math.max(0, Math.min(1, previous * 0.7 + (correct ? 0.3 : 0)))
     this.save(state)
     return state
   }
@@ -100,8 +93,7 @@ export const learning = {
     }
     const next: AppState = {
       ...state,
-      progress: { ...state.progress, [lesson.id]: progress },
-      activityMastery: { ...state.activityMastery }
+      progress: { ...state.progress, [lesson.id]: progress }
     }
     storage.save(next)
     return next
@@ -109,13 +101,13 @@ export const learning = {
 }
 
 declare global { interface Window { Telegram?: { WebApp?: any } } }
-const tg = typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined
+function tg() { return typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined }
 export const telegram = {
-  available: !!tg,
-  initData: tg?.initData || '',
-  firstName: () => tg?.initDataUnsafe?.user?.first_name || '',
-  ready: () => { try { tg?.ready(); tg?.expand() } catch {} },
-  haptic: (kind: 'success' | 'error' | 'warning') => { try { tg?.HapticFeedback?.notificationOccurred(kind) } catch {} }
+  get available() { return !!tg() },
+  get initData() { return tg()?.initData || '' },
+  firstName: () => tg()?.initDataUnsafe?.user?.first_name || '',
+  ready: () => { try { tg()?.ready(); tg()?.expand() } catch {} },
+  haptic: (kind: 'success' | 'error' | 'warning') => { try { tg()?.HapticFeedback?.notificationOccurred(kind) } catch {} }
 }
 telegram.ready()
 
@@ -153,7 +145,6 @@ export const audio = {
 }
 
 export const repetition = {
-  intervals: [1, 3, 7],
   needsPractice: (progress: LessonProgress) => progress.attempts > 0 && progress.mastery < .7,
   nextDate: (progress: LessonProgress) => new Date(nextReviewDate(progress.mastery, progress.completedAt))
 }
