@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import type { AppState } from '../app/types'
 import type { Route } from '../app/routes'
 import { worlds, lessons } from '../content/content'
 import { gradeForAge } from '../services/core'
+import { backend } from '../services/backend'
 
 export function Home({ s, nav }: { s: AppState; nav: (r: Route) => void }) {
   const visibleWorlds = worlds.filter(w => w.isActive).slice(0, 4)
@@ -11,12 +13,34 @@ export function Home({ s, nav }: { s: AppState; nav: (r: Route) => void }) {
   const labelByWorld: Record<string, string> = { world: 'Мир', math: 'Математика', animals: 'Животные', languages: 'Языки' }
   const giftLabels: Record<string, string> = { sticker: '🎁 Набор наклеек', avatar: '🧢 Новый аватар', treasure: '🪄 Волшебный сундук' }
 
+  const [dueReviewIds, setDueReviewIds] = useState<string[]>([])
+  useEffect(() => {
+    if (!backend.enabled) return
+    let alive = true
+    backend.getDueReviews().then(rows => {
+      if (alive) setDueReviewIds(rows.map(r => r.lessonId))
+    }).catch(() => {})
+    return () => { alive = false }
+  }, [])
+
+  const dueLessons = lessons.filter(l => dueReviewIds.includes(l.id))
+
   return (
     <section className="home-v204">
       <div className="home-v204-top">
         <div><p className="home-v204-kicker">ПОЧЕМУЧКИ</p><h1>Привет, {s.profile!.name}!</h1><p>Продолжай учиться — тебя ждут новые открытия!</p></div>
         <button className="home-v204-bell" onClick={() => nav({ name: 'me' })} aria-label="Уведомления"><img src={asset('ui/notification_bell.png')} alt="" /></button>
       </div>
+      {dueLessons.length > 0 && (
+        <div className="card review-box">
+          <b>🔁 Пора повторить</b>
+          {dueLessons.slice(0, 3).map(l => (
+            <button key={l.id} className="review-lesson" onClick={() => nav({ name: 'lesson', id: l.id })}>
+              <span>📚</span><div><b>{l.title}</b><small>Повторить сейчас</small></div><strong>→</strong>
+            </button>
+          ))}
+        </div>
+      )}
       {s.purchasedGifts.length > 0 && (
         <div className="home-v204-my-gifts">
           <div><b>Мои подарки</b><small>Ты уже получил:</small></div>
