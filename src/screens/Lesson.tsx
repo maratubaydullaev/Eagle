@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { AppState, Lesson as LessonType } from '../app/types'
 import { storage, learning, ageAdaptation, gradeForAge } from '../services/core'
 import { backend } from '../services/backend'
+import { outbox } from '../services/outbox'
 import { lessons } from '../content/content'
 import { Mascot } from '../components/Mascot'
 import { QuizActivity, DragDropActivity, MatchingActivity, SortingActivity } from '../features/activities'
@@ -26,6 +27,7 @@ export function Lesson({ s, lesson, done, back, sync }: {
   const [completedResult, setCompletedResult] = useState<LessonResult | null>(null)
   const pendingAttempts = useRef<Promise<unknown>[]>([])
   const [score, setScore] = useState(0)
+  const resultDone = useRef(false)
 
   useEffect(() => { sync(started) }, [started, sync])
 
@@ -33,17 +35,22 @@ export function Lesson({ s, lesson, done, back, sync }: {
   const timerSeconds = ageAdaptation.timerSeconds(s.profile!.age)
 
   useEffect(() => {
-    void backend.saveProgress(started.progress[lesson.id])
+    void backend.saveProgress(started.progress[lesson.id]).catch(() => {
+      outbox.enqueue({ kind: 'progress', progress: started.progress[lesson.id] })
+    })
     void backend.event('lesson_started', { lessonId: lesson.id })
   }, [started, lesson.id])
 
   async function result(ok: boolean) {
+    // StrictMode/двойной клик: итоговый расчёт выполняем ровно один раз.
+    if (resultDone.current) return
     const ns = score + (ok ? 1 : 0)
     setScore(ns)
     if (step < lesson.steps.length - 1) {
       setStep(x => x + 1)
       return
     }
+    resultDone.current = true
 
     await Promise.allSettled(pendingAttempts.current).catch(() => {})
 
@@ -78,6 +85,8 @@ export function Lesson({ s, lesson, done, back, sync }: {
         storage.save(reconciled)
         sync(reconciled)
         setCompletedResult({ score: server.progress.score, total: lesson.steps.length, state: reconciled })
+      } else if (!server) {
+        outbox.enqueue({ kind: 'progress', progress: next.progress[lesson.id] })
       }
     })()
 
@@ -91,11 +100,12 @@ export function Lesson({ s, lesson, done, back, sync }: {
 
   function onAttempt(ok: boolean, answer: unknown, timeSpent?: number) {
     try {
-      const n = storage.activityMastery(act.id, ok)
-      const request = backend.saveActivityAttempt({ profileId: n.profile!.id, activityId: act.id, isCorrect: ok, answer, timeSpent }).catch(() => {})
+      const request = backend.saveActivityAttempt({ profileId: s.profile!.id, activityId: act.id, isCorrect: ok, answer, timeSpent }).catch(() => {
+        outbox.enqueue({ kind: 'attempt', attempt: { profileId: s.profile!.id, activityId: act.id, isCorrect: ok, answer, timeSpent } })
+      })
       pendingAttempts.current.push(request)
     } catch {
-      // Attempt persistence must never block the gameplay transition.
+      outbox.enqueue({ kind: 'attempt', attempt: { profileId: s.profile!.id, activityId: act.id, isCorrect: ok, answer, timeSpent } })
     }
   }
 
