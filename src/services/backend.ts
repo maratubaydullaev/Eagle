@@ -4,11 +4,11 @@ import { lessons } from '../content/content'
 import { activityContentHash, computeWallet, lessonContentHash } from '../../supabase/functions/_shared/rewards'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const configured = Boolean(url && telegram.initData)
+const configured = () => Boolean(url && telegram.initData)
 const endpoint = url ? `${url.replace(/\/$/, '')}/functions/v1/pochemuchka-api` : ''
 
 async function call(action: string, payload: Record<string, unknown> = {}) {
-  if (!configured) return null
+  if (!configured()) return null
   const res = await fetch(endpoint, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -55,7 +55,7 @@ function hashForActivity(activityId: string): string {
 }
 
 export const backend = {
-  get enabled() { return configured },
+  get enabled() { return configured() },
   async bootstrap(): Promise<AppState | null> {
     const body = await call('bootstrap')
     if (!body) return null
@@ -71,13 +71,6 @@ export const backend = {
         } as ChildProfile
       : null
     const progress = Object.fromEntries((body.progress || []).map((r: any) => [r.lesson_id, fromRow(r)]))
-    const attempts = (body.activityAttempts || []) as ActivityAttempt[]
-    const activityMastery: Record<string, number> = {}
-    for (const attempt of attempts) {
-      const id = attempt.activityId || (attempt as any).activity_id
-      const ok = attempt.isCorrect ?? (attempt as any).is_correct
-      if (id) activityMastery[id] = (activityMastery[id] ?? 0) * 0.7 + (ok ? 0.3 : 0)
-    }
     const ps = Object.values(progress) as LessonProgress[]
     const purchasedGifts = (body.giftPurchases || []).map((x: any) => String(x.gift_id || x.giftId)).filter(Boolean)
     const earnedStars = ps.reduce((n, p) => n + p.stars, 0)
@@ -85,7 +78,6 @@ export const backend = {
     return {
       profile,
       progress,
-      activityMastery,
       xp: ps.reduce((n, p) => n + p.xp, 0),
       stars: balance,
       purchasedGifts,
