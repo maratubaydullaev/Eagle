@@ -9,6 +9,7 @@ import { GIFT_COSTS } from '../../supabase/functions/_shared/rewards'
 export function Progress({ s, back, sync }: { s: AppState; back: () => void; sync: (s: AppState) => void }) {
   const [tab, setTab] = useState<'stars' | 'lessons' | null>(() => (location.hash.replace('#/', '') === 'shop' ? 'stars' : null))
   const [purchasing, setPurchasing] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const grade = s.profile!.grade || gradeForAge(s.profile!.age)
   const availableLessons = lessons.filter(l => l.grade === grade).sort((a, b) => a.orderIndex - b.orderIndex)
   const completedLessons = availableLessons.filter(l => s.progress[l.id]?.status === 'completed')
@@ -25,6 +26,7 @@ export function Progress({ s, back, sync }: { s: AppState; back: () => void; syn
     if (purchasing) return
     const gift = gifts.find(g => g.id === id)!
     setPurchasing(id)
+    setError(null)
     try {
       if (backend.enabled) {
         const fresh = await backend.bootstrap()
@@ -44,10 +46,9 @@ export function Progress({ s, back, sync }: { s: AppState; back: () => void; syn
       }
       setTab('stars')
       location.hash = '/progress'
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Неизвестная ошибка'
-      console.error('gift purchase failed', error)
-      alert(`Не удалось обменять звёзды.\n${message}`)
+    } catch (err) {
+      console.error('gift purchase failed', err)
+      setError('Не получилось обменять звёзды. Попробуй ещё раз через минутку.')
     } finally {
       setPurchasing(null)
     }
@@ -60,6 +61,7 @@ export function Progress({ s, back, sync }: { s: AppState; back: () => void; syn
         <div><p className="eyebrow">МОЙ ПРОГРЕСС</p><h1>Привет, {s.profile!.name}! 🌟</h1><p>Ты уже прошёл {completedLessons.length} из {availableLessons.length} уроков.</p></div>
         <div className="progress-ring" style={{ '--progress': percent } as CSSProperties}><strong>{percent}%</strong><small>готово</small></div>
       </div>
+      {error && <div className="toast error" role="alert"><span>😿</span><div><b>Упс!</b><small>{error}</small></div></div>}
       <div className="progress-summary">
         <div><span>⭐</span><b>{s.stars}</b><small>Звёзды</small></div>
         <div><span>⚡</span><b>{s.xp}</b><small>Баллы</small></div>
