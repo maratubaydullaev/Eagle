@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { AppState, ChildProfile } from '../app/types'
 import { storage, gradeForAge } from '../services/core'
 import { backend } from '../services/backend'
+import { outbox } from '../services/outbox'
 import { parseRoute, serializeRoute, type Route } from '../app/routes'
 
 function routeFromLocation(): Route {
@@ -61,8 +62,16 @@ export function useAppState() {
       }
       storage.save(merged)
       setState(merged)
+      // Досылаем накопленный офлайн-прогресс после реконсилиации.
+      void outbox.flush()
     }).catch(() => {})
     return () => { alive = false }
+  }, [])
+
+  useEffect(() => {
+    const onOnline = () => { void outbox.flush() }
+    window.addEventListener('online', onOnline)
+    return () => window.removeEventListener('online', onOnline)
   }, [])
 
   return { state, route, nav, sync, profileDone }
