@@ -61,7 +61,7 @@ export function evaluateActivity(type: string, content: unknown, answer: unknown
       String(c.correct[targetIndex]) === String(a.item)
   }
 
-  if (type === 'matching') {
+  if (type === 'matching' || type === 'memory') {
     if (!answer || typeof answer !== 'object') return false
     const a = answer as { first?: unknown; second?: unknown }
     if (typeof a.first !== 'string' || typeof a.second !== 'string') return false
@@ -79,6 +79,11 @@ export function evaluateActivity(type: string, content: unknown, answer: unknown
     return answer.length === c.correctOrder.length &&
       answer.every((value: unknown, index: number) =>
         String(value) === String(c.correctOrder![index]))
+  }
+
+  if (type === 'find_object') {
+    const c = content as { correctId?: unknown }
+    return typeof answer === 'string' && answer === String(c.correctId)
   }
 
   return false
